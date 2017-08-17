@@ -1,4 +1,4 @@
-function obj=check_arduino(obj)
+function freq=check_arduino(obj)
      obj.open_port;
      try
      nTest=10;
@@ -20,9 +20,12 @@ function obj=check_arduino(obj)
          end
      end
      close(h);
-     fprintf('Measured acquisition frequence: %.2f Hz\n',median(f(2:iAcquis)));
+     freq=median(f(2:iAcquis));
+     fprintf('Measured acquisition frequence: %.2f Hz\n',freq);
      catch
+         freq=NaN;
      end
+     
      obj.close_port;
      
      

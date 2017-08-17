@@ -34,7 +34,7 @@ function obj=acquire(obj)
                     end
 
                     for k=2:numel(idx)-1
-                        Sensor(k-1)=str2double(msg(idx(k)+1:idx(k+1)-1))/obj.Hardware.Bits *obj.Hardware.Volts;
+                        Sensor(k-1)=str2double(msg(idx(k)+1:idx(k+1)-1))/2^obj.Hardware.Bits *obj.Hardware.Volts;
                     end
 
                     obj.addmeasure((TheTime-time_init)/1000,Sensor);
@@ -42,13 +42,13 @@ function obj=acquire(obj)
             end
             Tend=toc;
             while obj.Time(end)<Tend
-                % warning('off','MATLAB:callback:error')
+                 warning('off','MATLAB:callback:error')
                 msg=fscanf(obj.Hardware.Serial);
                 if strfind(msg(1),'D');
                     idx=[strfind(msg,' ') numel(msg+1)];
                     TheTime=str2double(msg(idx(1)+1:idx(2)-1));
                     for k=2:numel(idx)-1
-                        Sensor(k-1)=str2double(msg(idx(k)+1:idx(k+1)-1))/obj.Hardware.Bits *obj.Hardware.Volts;
+                        Sensor(k-1)=str2double(msg(idx(k)+1:idx(k+1)-1))/2^obj.Hardware.Bits *obj.Hardware.Volts;
                     end
                     obj.addmeasure((TheTime-time_init)/1000,Sensor);
                 else

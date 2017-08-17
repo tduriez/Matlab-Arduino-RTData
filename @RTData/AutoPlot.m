@@ -31,8 +31,8 @@ function AutoPlot(metaProp,eventData)
                         h.graphics.nStep=max(1,round(h.graphics.iFrame/h.nPoints));
                     end
                     
-                    DisplayTime=h.time(max(1,end-h.graphics.iFrame):h.graphics.nStep:end);
-                    DisplayData=h.data(max(1,end-h.graphics.iFrame):h.graphics.nStep:end,:);
+                    DisplayTime=h.Time(max(1,end-h.graphics.iFrame):h.graphics.nStep:end);
+                    DisplayData=h.Data(max(1,end-h.graphics.iFrame):h.graphics.nStep:end,:);
                 end
                 
                 
