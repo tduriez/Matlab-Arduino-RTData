@@ -24,7 +24,7 @@ classdef RTData < handle
     properties (Hidden, SetAccess=private)
         graphics
         acquired=0
-        arduino='default'
+        arduino='due'
         delay=200
     end
     
@@ -41,9 +41,9 @@ classdef RTData < handle
            obj.graphics.dt=[];
            obj.graphics.nRefresh=[];
            
-           obj.Hardware.arduino='default';
-           obj.Hardware.Bits=0;
-           obj.Hardware.Volts=1;
+           obj.Hardware.arduino='due';
+           obj.Hardware.Bits=12;
+           obj.Hardware.Volts=3.3;
            obj.Hardware.delay=200;
            addlistener(obj,'Time','PostSet',@RTData.AutoPlot);
            addlistener(obj,'Hardware','PostSet',@RTData.HardwareChange);
