@@ -23,12 +23,14 @@
 			}
 		}
 	}
+        Serial.println(str);
 	return index;
 }
  
 void setup() {
   analogReadResolution(12);
   SerialUSB.begin(9600);
+  Serial.begin(9600);
 }
 
 int isnum(char str[]){
