@@ -22,7 +22,7 @@ function varargout = RTDataGUI(varargin)
 
 % Edit the above text to modify the response to help RTDataGUI
 
-% Last Modified by GUIDE v2.5 16-Aug-2017 22:05:35
+% Last Modified by GUIDE v2.5 22-Aug-2017 12:43:49
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -502,3 +502,15 @@ curdir=pwd;
     cd(curdir);
 %catch
 %end
+
+
+% --- Executes on button press in SaveBttn.
+function SaveBttn_Callback(hObject, eventdata, handles)
+% hObject    handle to SaveBttn (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+cstate=handles.output.Save;
+handles.output.Save=1;
+handles.output.save;
+handles.output.Save=cstate;
+display_folder(handles);
