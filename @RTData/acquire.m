@@ -7,11 +7,27 @@ function obj=acquire(obj)
             iAcquis=0;
             TheFig=figure;
             msg=fscanf(obj.Hardware.Serial);
-            if strfind(msg(1),'D');
-                nbFig=numel(strfind(msg,' '))-1;
+            nbSensors=[];
+            iTest=0;
+            while isempty(nbSensors);
+                msg=fscanf(obj.Hardware.Serial);
+                if strfind(msg(1),'S');
+                    idx = strfind(msg,' ');
+                    idx2 = strfind(msg,' C');
+                    idx3 = idx(idx>idx2); 
+                    idx=idx(idx<idx2);
+                    nbSensors=numel(idx)-1;
+                    nbControls=numel(idx3);
+                end
+                iTest=iTest+1;
+                if iTest>30;
+                    error('Couldn''t find Data line from Arduino');
+                end
             end
-            for k=1:nbFig
-                subplot(nbFig,1,k)
+            for k=1:nbSensors+nbControls
+                nbFigs=nbSensors+nbControls;
+                
+                subplot(min(nbFigs,4),ceil(nbFigs/4),k)
                 obj.graphics.axes_handles(k)=gca;
                 obj.graphics.plot_handles(k)=plot(1,1,'*');
                 if k==1
@@ -19,41 +35,14 @@ function obj=acquire(obj)
                 end
             end
 
-
-
+            Marker=1;
+            time_init=0;
             while ishandle(TheFig)
-                msg=fscanf(obj.Hardware.Serial);
-                drawnow limitrate
-                if strfind(msg(1),'D');
-                    iAcquis=iAcquis+1;
-                    idx=[strfind(msg,' ') numel(msg+1)];
-                    TheTime=str2double(msg(idx(1)+1:idx(2)-1));
-                    if iAcquis==1
-                        time_init=TheTime;
-                        Sensor=zeros(1,numel(idx)-2);
-                    end
-
-                    for k=2:numel(idx)-1
-                        Sensor(k-1)=str2double(msg(idx(k)+1:idx(k+1)-1))/2^obj.Hardware.Bits *obj.Hardware.Volts;
-                    end
-
-                    obj.addmeasure((TheTime-time_init)/1000,Sensor);
-                end
+                [Marker,time_init]=GetDataFromSerial(obj,Marker,time_init,nbSensors,nbControls);
             end
             Tend=toc;
-            while obj.Time(end)<Tend
-                 warning('off','MATLAB:callback:error')
-                msg=fscanf(obj.Hardware.Serial);
-                if strfind(msg(1),'D');
-                    idx=[strfind(msg,' ') numel(msg+1)];
-                    TheTime=str2double(msg(idx(1)+1:idx(2)-1));
-                    for k=2:numel(idx)-1
-                        Sensor(k-1)=str2double(msg(idx(k)+1:idx(k+1)-1))/2^obj.Hardware.Bits *obj.Hardware.Volts;
-                    end
-                    obj.addmeasure((TheTime-time_init)/1000,Sensor);
-                else
-                    break
-                end
+            while obj.Time(end)<Tend %% Purging the cache up to real time figure closing
+                GetDataFromSerial(obj,2,time_init,nbSensors,nbControls);
             end
         catch err
             obj.close_port
@@ -67,5 +56,32 @@ function obj=acquire(obj)
         
     else
         fprintf('Data already collected for this object\n')
+    end
+end
+
+function [Marker,time_init]=GetDataFromSerial(obj,Marker,time_init,nbSensors,nbControls)
+    msg=fscanf(obj.Hardware.Serial);
+    if Marker==2
+        warning('off','MATLAB:callback:error');
+    else
+        drawnow limitrate
+    end
+   
+    if strfind(msg(1),'S');
+        idx=[strfind(msg,' ') numel(msg+1)];
+        TheTime=str2double(msg(idx(1)+1:idx(2)-1));
+        if Marker==1
+            Marker=0;
+            time_init=TheTime;
+        end
+        Sensor=zeros(1,nbSensors);
+        Control=zeros(1,nbControls);
+        for k=2:nbSensors+1
+            Sensor(k-1)=str2double(msg(idx(k)+1:idx(k+1)-1))/2^obj.Hardware.Bits *obj.Hardware.Volts;
+        end
+        for k=1:nbControls
+           Control(k)=str2double(msg(idx(nbSensors+k+2)+1:idx(nbSensors+k+3)-1));
+        end
+        obj.addmeasure((TheTime-time_init)/1000,Sensor,Control);
     end
 end

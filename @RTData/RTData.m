@@ -25,6 +25,7 @@ classdef RTData < handle
 %% Protected properties
     properties (SetObservable, SetAccess=private)
         Data=[]        % Where data will be kept
+        Action=[]      % Where action will be kept 
         Time=[]        % Where time will be kept
         AcqDate        % Burnt once acquisition is done
         
@@ -69,9 +70,11 @@ classdef RTData < handle
         end
 
 %% Other methods
-        function obj=addmeasure(obj,t,sensors)
+        function obj=addmeasure(obj,t,sensors,control)
             obj.Data(end+1,:)=sensors(:);
+            obj.Action(end+1,:)=control(:);
             obj.Time(end+1,1)=t;
+            
         end
         
         function obj=open_port(obj)
@@ -96,6 +99,7 @@ classdef RTData < handle
         end
         
         obj  = acquire(obj)     
+        obj  = control(obj)
         freq = check_arduino(obj)
         obj  = set_arduino_parameters(obj,ChangeSettings);
                save(obj);
