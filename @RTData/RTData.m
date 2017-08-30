@@ -101,8 +101,9 @@ classdef RTData < handle
         obj  = acquire(obj)     
         obj  = control(obj)
         freq = check_arduino(obj)
-        obj  = set_arduino_parameters(obj,ChangeSettings);
-               save(obj);
+        obj  = set_arduino_parameters(obj,ChangeSettings)
+               save(obj)
+        obj  = makeLiveInterface(obj,nbfigs,TheFig)
     end
     
 %% Events callbacks    

@@ -24,16 +24,9 @@ function obj=acquire(obj)
                     error('Couldn''t find Data line from Arduino');
                 end
             end
-            for k=1:nbSensors+nbControls
-                nbFigs=nbSensors+nbControls;
-                
-                subplot(min(nbFigs,4),ceil(nbFigs/4),k)
-                obj.graphics.axes_handles(k)=gca;
-                obj.graphics.plot_handles(k)=plot(1,1,'*');
-                if k==1
-                    obj.graphics.text_handles(1)=title(sprintf('%3.2f s',toc));
-                end
-            end
+            nbFigs=nbSensors+nbControls;
+            obj.makeLiveInterface(nbFigs,TheFig);
+            
 
             Marker=1;
             time_init=0;
