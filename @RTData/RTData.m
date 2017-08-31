@@ -14,6 +14,7 @@ classdef RTData < handle
         fRefresh=1     % Frequency (Hz) of refresh of the graph
         Notes=''       % Experimental notes (should be a string)
         Name='test'    % Experiment name
+        Control        % Control type and parameters
         Save=0         % Save switch (0> no 1>.mat 2>mat+txt -2> txt
     end
     

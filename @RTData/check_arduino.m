@@ -8,7 +8,7 @@ function period=check_arduino(obj)
      iAcquis=0;
      while iAcquis<nTest
          msg=fscanf(obj.Hardware.Serial);
-         if strfind(msg(1),'D');
+         if strfind(msg(1),'S');
              iAcquis=iAcquis+1;
              idx=[strfind(msg,' ') numel(msg+1)];
              time(iAcquis)=str2double(msg(idx(1)+1:idx(2)-1));

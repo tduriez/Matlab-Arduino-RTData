@@ -22,7 +22,7 @@ function varargout = RTDataGUI(varargin)
 
 % Edit the above text to modify the response to help RTDataGUI
 
-% Last Modified by GUIDE v2.5 22-Aug-2017 12:43:49
+% Last Modified by GUIDE v2.5 30-Aug-2017 16:01:50
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -67,8 +67,8 @@ search_serial(handles);
 
 
 % Update handles structure
-set(hObject,'closeRequestFcn',[])
-set(hObject, 'Position', get(0,'Screensize')); % Maximize figure. 
+set(gcf,'closeRequestFcn',[])
+set(gcf, 'Position', get(0,'Screensize')); % Maximize figure. 
 
 guidata(hObject, handles);
 
@@ -514,3 +514,41 @@ handles.output.Save=1;
 handles.output.save;
 handles.output.Save=cstate;
 display_folder(handles);
+
+
+% --- Executes on selection change in CtrlTypeMenu.
+function CtrlTypeMenu_Callback(hObject, eventdata, handles)
+% hObject    handle to CtrlTypeMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns CtrlTypeMenu contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from CtrlTypeMenu
+
+
+% --- Executes during object creation, after setting all properties.
+function CtrlTypeMenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to CtrlTypeMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in CtrlSettingsBttn.
+function CtrlSettingsBttn_Callback(hObject, eventdata, handles)
+% hObject    handle to CtrlSettingsBttn (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in EmptyBttn.
+function EmptyBttn_Callback(hObject, eventdata, handles)
+% hObject    handle to EmptyBttn (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+RTDataGUI_OpeningFcn(hObject, eventdata, handles);
