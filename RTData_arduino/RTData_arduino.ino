@@ -1,5 +1,6 @@
-
-
+/* *****************
+   *** VARIABLES ***
+   ***************** */
 int ActionPin=13;
 int i = 0;
 int j= 0;
@@ -11,18 +12,23 @@ int nSensors = 12;
 unsigned long InitTime;
 int Sensors[12];
 int Control;
+unsigned long ActTime[1];
+unsigned long ActTimeOut[1];
+int ActParams[3];
 
-unsigned long ActTime=0;
+/* *****************
+   ***  METHODS  ***
+   ***************** */
 
 int ReadLine(char str[]) {
-  // function for reading a line from the SerialUSB buffer.
+  // function for reading a line from the Serial buffer.
   // In: nothing.
   // Out: char object with \0 termination.
   char c;
   int index = 0;
   while (true) {
-    if (SerialUSB.available() > 0) {
-      c = SerialUSB.read();
+    if (Serial.available() > 0) {
+      c = Serial.read();
       if (c != '\n' & c != 'i') {
         str[index++] = c;
       } else {
@@ -33,8 +39,6 @@ int ReadLine(char str[]) {
   }
   return index;
 }
-
-
 
 void updateSensors(int Sensors[], int nSensors, int Pins[]) {
   for (i = 0; i < nSensors; i++) {
@@ -55,30 +59,46 @@ void rescaleSensors(int Sensors[], int nSensors, int nMeasures) {
 }
 
 void sendSensors(int Sensors[], int Control, int nSensors) {
-    SerialUSB.print("S ");
-    SerialUSB.print(millis());
-    SerialUSB.print(" ");
+    Serial.print("S ");
+    Serial.print(millis());
+    Serial.print(" ");
   for (i = 0; i < nSensors; i++) {
-    SerialUSB.print(Sensors[i]);
-    SerialUSB.print(" ");
+    Serial.print(Sensors[i]);
+    Serial.print(" ");
   }
-  SerialUSB.print("C ");
-  SerialUSB.println(Control);
+  Serial.print("C ");
+  Serial.println(Control);
 }
 
-int control(unsigned long ActTime) {
-  int Control;
-  if (millis() < ActTime) {
-    digitalWrite(ActionPin,HIGH);
+int control(unsigned long ActTime[],unsigned long ActTimeOut[],int ActParams[]) {
+  int Control=0;
+  if (millis() > ActTime[0]) {
     Control=1;
+  }
+
+  if (millis()>ActTimeOut[0]) {
+    if (Control==1) {
+      if (ActParams[1]>1) {
+        ActTime[0]=ActTime[0]+ActParams[2];
+        ActTimeOut[0]=ActTime[0]+ActParams[0];
+        ActParams[1]=ActParams[1]-1;
+      }
+    }
+    Control=0;
+  }
+  if (Control==1) {
+    digitalWrite(ActionPin,HIGH);
   }
   else {
     digitalWrite(ActionPin,LOW);
-    Control=0;
   }
+  
   return Control;
 }
 
+/* *****************
+   ***   SETUP   ***
+   ***************** */
 
 void setup() {
   Pins[0] = 54;
@@ -93,11 +113,16 @@ void setup() {
   Pins[9] = 63;
   Pins[10] = 64;
   Pins[11] = 65;
+  ActTime[0]=4294967295;
+  ActTimeOut[0]=0;
   analogReadResolution(12);
-  SerialUSB.begin(9600);  
+  Serial.begin(9600);  
   pinMode(ActionPin, OUTPUT);
 }
 
+/* *****************
+   ***   LOOP    ***
+   ***************** */
 
 void loop() {
     /* Preparing for measurement */  
@@ -114,7 +139,7 @@ void loop() {
     rescaleSensors(Sensors, nSensors, nMeasures);
 
      /* Control */
-    Control=control(ActTime);
+    Control=control(ActTime,ActTimeOut,ActParams);
 
     /* Send Results */
     sendSensors(Sensors, Control, nSensors);
@@ -125,39 +150,47 @@ void loop() {
     delay(TheDelay);
 
     /* Manage messages from outside */
-    if (SerialUSB.available() > 0) {
+    if (Serial.available() > 0) {
       int bufferCount;
-      char FromSerialBuffer[16];
-      char Part1[3];
-      char Part2[4];
-      char Part3[6];
+      char FromSerialBuffer[23];
+      char Part1[7];
+      char Part2[7];
+      char Part3[7];
       bufferCount = ReadLine(FromSerialBuffer);
-      if (FromSerialBuffer[0]==78) { // If the first letter is N
-        SerialUSB.println("Changing parameters");
-        for (i=0;i<2;i++) {
+      for (i=0;i<6;i++) {
           Part1[i]=FromSerialBuffer[i+2];
         }
+        for (i=0;i<6;i++) {
+          Part2[i]=FromSerialBuffer[i+9];
+        }
+        for (i=0;i<6;i++) {
+          Part3[i]=FromSerialBuffer[i+16];
+        }
+      if (FromSerialBuffer[0]==78) { // If the first letter is N
+        Serial.println("Changing parameters");
         nSensors=atol(Part1); 
-        for (i=0;i<3;i++) {
-          Part2[i]=FromSerialBuffer[i+5];
-        }
         nMeasures=atol(Part2); 
-        for (i=0;i<5;i++) {
-          Part3[i]=FromSerialBuffer[i+10];
-        }
         TheDelay=atol(Part3);    
-        SerialUSB.print("New nSensors: ");
-        SerialUSB.println(nSensors);
-        SerialUSB.print("New nMeasures: ");
-        SerialUSB.println(nMeasures);
-        SerialUSB.print("New Delay: ");
-        SerialUSB.println(TheDelay);
+  /*    Serial.print("New nSensors: ");
+        Serial.println(nSensors);
+        Serial.print("New nMeasures: ");
+        Serial.println(nMeasures);
+        Serial.print("New Delay: ");
+        Serial.println(TheDelay); */
       }
       if (FromSerialBuffer[0]==65) { // 65 is A
-        for (i=0;i<5;i++) {
-          Part3[i]=FromSerialBuffer[i+2];
-        }
-        ActTime=millis()+atol(Part3);
+        Serial.println("New staged control sequence");
+        ActParams[0]=atol(Part1);
+        ActParams[1]=atol(Part2);
+        ActParams[2]=atol(Part3);
+  /*    Serial.print("Pulse Width: ");
+        Serial.println(ActParams[0]);
+        Serial.print("Repetitions: ");
+        Serial.println(ActParams[1]);
+        Serial.print("Delay: ");
+        Serial.println(ActParams[2]); */
+        ActTime[0]=millis();
+        ActTimeOut[0]=millis()+ActParams[0];
       }
     }
 
