@@ -1,7 +1,7 @@
 function obj=makeLiveInterface(obj,nbFigs,TheFig)
 figure(TheFig);
 set(gcf, 'Position', get(0,'Screensize'))
-
+tic
 for k=1:nbFigs
     subplot(min(nbFigs,4),ceil(nbFigs/4),k)
     obj.graphics.axes_handles(k)=gca;
@@ -32,6 +32,6 @@ function bttncallback(hObject, eventdata,obj)
 % hObject    handle to pushbutton1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-obj
+obj.control;
 end
     

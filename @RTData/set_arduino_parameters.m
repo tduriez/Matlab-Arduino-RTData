@@ -4,7 +4,7 @@ function obj=set_arduino_parameters(obj,ChangeSettings)
 
 
     if ~ChangeSettings
-        fpritnf(Settings_sep);
+        fprintf(Settings_sep);
         fprintf('Changing Arduino voltage configuration to %s\n',obj.Hardware.arduino);
         switch lower(obj.Hardware.arduino)
             case 'uno'
@@ -24,18 +24,18 @@ function obj=set_arduino_parameters(obj,ChangeSettings)
                 obj.Hardware.Bits=0;
                 obj.Hardware.Volts=1;
         end
-        fpritnf(Settings_sep);
+        fprintf(Settings_sep);
     end
     
     if ChangeSettings
         obj.open_port;
         fprintf(Settings_sep);
-        fprintf('New arduino internal settings:\n')
+        fprintf('Arduino internal settings:\n')
         fprintf('\n')
         fprintf('Channels:    %d\n',obj.Hardware.Channels);
         fprintf('Averaging:   %d\n',obj.Hardware.nMeasures);
         fprintf('Acq period:  %d\n',obj.Hardware.delay);
         fprintf(Settings_sep);
-        fprintf(obj.Hardware.Serial,sprintf('N %02d %03d %05d',obj.Hardware.Channels,obj.Hardware.nMeasures,obj.Hardware.delay));
+        fprintf(obj.Hardware.Serial,sprintf('N %06d %06d %06d',obj.Hardware.Channels,obj.Hardware.nMeasures,obj.Hardware.delay));
         obj.close_port;
     end

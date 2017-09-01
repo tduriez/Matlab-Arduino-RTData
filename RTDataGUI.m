@@ -22,7 +22,7 @@ function varargout = RTDataGUI(varargin)
 
 % Edit the above text to modify the response to help RTDataGUI
 
-% Last Modified by GUIDE v2.5 30-Aug-2017 16:01:50
+% Last Modified by GUIDE v2.5 01-Sep-2017 16:23:55
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -54,23 +54,21 @@ function RTDataGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % By default, ouput the current RTData object;
 handles.output = RTData;
-
+guidata(hObject, handles);
 SetGUIToValue(handles);
 
-activate(handles,'Acquisition','off');
+activate(handles,'Display','off');
 activate(handles,'Options','off');
+activate(handles,'Control','off');
 
 display_folder(handles);
-
-search_serial(handles);
-
 
 
 % Update handles structure
 set(gcf,'closeRequestFcn',[])
 set(gcf, 'Position', get(0,'Screensize')); % Maximize figure. 
 
-guidata(hObject, handles);
+
 
 % UIWAIT makes RTDataGUI wait for user response (see UIRESUME)
  uiwait(handles.figure1);
@@ -82,12 +80,14 @@ function show_case(TheAxe,TheData)
  
 function activate(handles,group,state)
         switch group
-            case 'Acquisition'
+            case 'Display'
                 list_handles={'NbPointsEdt','GraphFreqEdt','TimeSpanEdt','GoBttn'};
             case 'Options'
                 list_handles={'SaveMatCheck','SaveTxtCheck','NameEdt','EditNotesBttn'};
             case 'Configuration'
-                list_handles={'SerialPop','ArduinoPop','LoopDelayEdt'};
+                list_handles={'SetBttn'};
+            case 'Control'
+                list_handles={'CtrlTypeMenu','CtrlSettingsBttn'};
         end
         
         for i=1:numel(list_handles)
@@ -102,21 +102,32 @@ function display_folder(handles)
     end
     set(handles.MatList,'String',theString,'Value',1);
           
-function search_serial(handles)
-    serialInfo = instrhwinfo('serial');
-    set(handles.SerialPop,'String',serialInfo.AvailableSerialPorts,'Value',1);
+function displayHardware(handles)
+    if isfield(handles.output.Hardware,'Port')
+        disptxt{1}=sprintf('Port: %s',handles.output.Hardware.Port);
+    else
+        set(handles.ConfigList,'String','Not configured','Value',1);
+        return
+    end
+    disptxt{2}=sprintf('Board:      %s',handles.output.Hardware.arduino);
+
+    disptxt{3}=sprintf('Loop delay: %d ms, (%.2f Hz)',handles.output.Hardware.delay,1000/handles.output.Hardware.delay);
+    disptxt{4}=sprintf('Averaging:  %d points',handles.output.Hardware.nMeasures);
+    disptxt{5}=sprintf('Channels:   %d',handles.output.Hardware.Channels);
+    
+    set(handles.ConfigList,'String',disptxt);
+    
+
     
 function SetGUIToValue(handles);
-    set(handles.LoopDelayEdt,'String',sprintf('%d',handles.output.Hardware.delay))
+    
     set(handles.NbPointsEdt,'String',sprintf('%d',handles.output.nPoints));
     set(handles.GraphFreqEdt,'String',sprintf('%d',handles.output.fRefresh));
     set(handles.TimeSpanEdt,'String',sprintf('%d',handles.output.tFrame));
     set(handles.NameEdt,'String',sprintf('%s',handles.output.Name));
+    displayHardware(handles);
     
 function SetValueToGUI(handles);
-    SerialPop_Callback(handles.SerialPop,[],handles);
-    ArduinoPop_Callback(handles.ArduinoPop,[],handles);
-    LoopDelayEdt_Callback(handles.LoopDelayEdt,[],handles);21
     NbPointsEdt_Callback(handles.NbPointsEdt,[],handles);
     GraphFreqEdt_Callback(handles.GraphFreqEdt,[],handles);
     TimeSpanEdt_Callback(handles.TimeSpanEdt,[],handles);
@@ -137,53 +148,6 @@ close(hObject);
 varargout{1} = handles.output;
 
 
-% --- Executes on selection change in SerialPop.
-function SerialPop_Callback(hObject, eventdata, handles)
-% hObject    handle to SerialPop (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-listSerial=cellstr(get(hObject,'String'));
-handles.output.Hardware.Port=listSerial{get(hObject,'Value')};
-
-
-% Hints: contents = cellstr(get(hObject,'String')) returns SerialPop contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from SerialPop
-
-
-% --- Executes during object creation, after setting all properties.
-function SerialPop_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to SerialPop (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function NbPointsEdt_Callback(hObject, eventdata, handles)
-% hObject    handle to NbPointsEdt (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-handles.output.nPoints=str2double(get(hObject,'String'));
-% Hints: get(hObject,'String') returns contents of NbPointsEdt as text
-%        str2double(get(hObject,'String')) returns contents of NbPointsEdt as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function NbPointsEdt_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to NbPointsEdt (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
 
 
 
@@ -208,6 +172,26 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+function NbPointsEdt_Callback(hObject, eventdata, handles)
+% hObject    handle to TimeSpanEdt (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.output.nPoints=str2double(get(hObject,'String'));
+% Hints: get(hObject,'String') returns contents of TimeSpanEdt as text
+%        str2double(get(hObject,'String')) returns contents of TimeSpanEdt as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function NbPointsEdt_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to TimeSpanEdt (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
 
 
 function TimeSpanEdt_Callback(hObject, eventdata, handles)
@@ -232,53 +216,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on selection change in ArduinoPop.
-function ArduinoPop_Callback(hObject, eventdata, handles)
-% hObject    handle to ArduinoPop (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-contents = cellstr(get(hObject,'String'));
-handles.output.Hardware.arduino = contents{get(hObject,'Value')};
-        
-
-% Hints: contents = cellstr(get(hObject,'String')) returns ArduinoPop contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from ArduinoPop
-
-
-% --- Executes during object creation, after setting all properties.
-function ArduinoPop_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to ArduinoPop (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function LoopDelayEdt_Callback(hObject, eventdata, handles)
-% hObject    handle to LoopDelayEdt (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-handles.output.Hardware.delay=str2double(get(hObject,'String'));
-% Hints: get(hObject,'String') returns contents of LoopDelayEdt as text
-%        str2double(get(hObject,'String')) returns contents of LoopDelayEdt as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function LoopDelayEdt_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to LoopDelayEdt (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
 
 
 % --- Executes on button press in GoBttn.
@@ -326,8 +263,10 @@ function NewBttn_Callback(hObject, eventdata, handles)
 % hObject    handle to NewBttn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+Control=handles.output.Control;
 handles.output=RTData;
-guidata(hObject,handles)
+handles.output.Control=Control;
+guidata(hObject,handles);
 SetValueToGUI(handles);
 activate(handles,'Acquisition','on');
 
@@ -441,15 +380,18 @@ function CheckBttn_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 freq=handles.output.check_arduino;
 set(handles.CheckTxt,'String',sprintf('%f',freq));
+
 % --- Executes on button press in SetBttn.
 function SetBttn_Callback(hObject, eventdata, handles)
 % hObject    handle to SetBttn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-activate(handles,'Acquisition','on')
+activate(handles,'Display','on')
 activate(handles,'Options','on')
-listSerial=cellstr(get(handles.SerialPop,'String'));
-handles.output.Hardware.Port=listSerial{get(handles.SerialPop,'Value')};
+activate(handles,'Control','on')
+GUIHardwareSettings(handles.output);
+SetGUIToValue(handles);
+
 
 
 % --- Executes on button press in ChooseBttn.
@@ -544,6 +486,15 @@ function CtrlSettingsBttn_Callback(hObject, eventdata, handles)
 % hObject    handle to CtrlSettingsBttn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+CtrlTypes=get(handles.CtrlTypeMenu,'String');
+CtrlType=CtrlTypes{get(handles.CtrlTypeMenu,'Value')};
+switch CtrlType
+    case 'None'
+    case 'Staged Sequence'
+        GUIStageSequence(handles.output);
+    case 'Law'
+    case 'MLC'
+end
 
 
 % --- Executes on button press in EmptyBttn.
@@ -552,3 +503,26 @@ function EmptyBttn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 RTDataGUI_OpeningFcn(hObject, eventdata, handles);
+
+
+% --- Executes on selection change in ConfigList.
+function ConfigList_Callback(hObject, eventdata, handles)
+% hObject    handle to ConfigList (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns ConfigList contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from ConfigList
+
+
+% --- Executes during object creation, after setting all properties.
+function ConfigList_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to ConfigList (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
