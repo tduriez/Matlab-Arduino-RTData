@@ -22,7 +22,7 @@ function varargout = RTDataGUI(varargin)
 
 % Edit the above text to modify the response to help RTDataGUI
 
-% Last Modified by GUIDE v2.5 01-Sep-2017 16:23:55
+% Last Modified by GUIDE v2.5 01-Sep-2017 22:19:37
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -56,7 +56,7 @@ function RTDataGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = RTData;
 guidata(hObject, handles);
 SetGUIToValue(handles);
-
+activate(handles,'Configuration','on')
 activate(handles,'Display','off');
 activate(handles,'Options','off');
 activate(handles,'Control','off');
@@ -118,12 +118,26 @@ function displayHardware(handles)
         return
     end
     disptxt{2}=sprintf('Board:      %s',handles.output.Hardware.arduino);
-
     disptxt{3}=sprintf('Loop delay: %d ms, (%.2f Hz)',handles.output.Hardware.delay,1000/handles.output.Hardware.delay);
     disptxt{4}=sprintf('Averaging:  %d points',handles.output.Hardware.nMeasures);
     disptxt{5}=sprintf('Channels:   %d',handles.output.Hardware.Channels);
-    
     set(handles.ConfigList,'String',disptxt);
+    
+function displayControl(handles)
+    if ~isempty(handles.output.Control)
+        disptxt{1}=sprintf('Type: %s',handles.output.Control.Type);
+    else
+        set(handles.ControlList,'String','No control','Value',1);
+        return
+    end
+    switch lower(handles.output.Control.Type)
+        case 'stagedsequence'
+            disptxt{2}=sprintf('Pulse Width: %d ms',handles.output.Control.PulseWidth);
+            disptxt{3}=sprintf('#: %d',handles.output.Control.Repetition);
+            disptxt{4}=sprintf('Every: %d ms',handles.output.Control.Delay);
+    end
+    set(handles.ControlList,'String',disptxt);
+
     
 
     
@@ -134,6 +148,7 @@ function SetGUIToValue(handles);
     set(handles.TimeSpanEdt,'String',sprintf('%d',handles.output.tFrame));
     set(handles.NameEdt,'String',sprintf('%s',handles.output.Name));
     displayHardware(handles);
+    displayControl(handles)
     
 function SetValueToGUI(handles);
     NbPointsEdt_Callback(handles.NbPointsEdt,[],handles);
@@ -506,11 +521,13 @@ CtrlTypes=get(handles.CtrlTypeMenu,'String');
 CtrlType=CtrlTypes{get(handles.CtrlTypeMenu,'Value')};
 switch CtrlType
     case 'None'
+        handles.output.Control=[];
     case 'Staged Sequence'
         GUIStageSequence(handles.output);
     case 'Law'
     case 'MLC'
 end
+displayControl(handles);
 
 
 % --- Executes on button press in EmptyBttn.
@@ -519,6 +536,7 @@ function EmptyBttn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 RTDataGUI_OpeningFcn(hObject, eventdata, handles);
+
 
 
 % --- Executes on selection change in ConfigList.
@@ -534,6 +552,29 @@ function ConfigList_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function ConfigList_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to ConfigList (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in ControlList.
+function ControlList_Callback(hObject, eventdata, handles)
+% hObject    handle to ControlList (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns ControlList contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from ControlList
+
+
+% --- Executes during object creation, after setting all properties.
+function ControlList_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to ControlList (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
