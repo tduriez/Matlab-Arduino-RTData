@@ -193,6 +193,12 @@ void loop() {
         ActTime[0]=millis();
         ActTimeOut[0]=millis()+ActParams[0];
       }
+       if (FromSerialUSBBuffer[0]==75) {// 75 is K
+        digitalWrite(ActionPin,LOW);
+        ActParams[1]=1;
+        ActTime[0]=4294967295;
+        ActTimeOut[0]=0;
+    }
     }
 
 

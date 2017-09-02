@@ -76,6 +76,14 @@ set(gcf, 'Position', get(0,'Screensize')); % Maximize figure.
 function show_case(TheAxe,TheData)
     axes(TheAxe);
     plot(TheData.Time,TheData.Data,'*');
+    delta=max(TheData.Data(:))-min(TheData.Data(:));
+    if max(TheData.Action)>0
+        hold on
+        plot(TheData.Time,TheData.Action*delta+min(TheData.Data(:)),'k');
+        hold off
+    end
+    set(gca,'xlim',[0 TheData.Time(end)]);
+    
         
  
 function activate(handles,group,state)
@@ -223,8 +231,10 @@ function GoBttn_Callback(hObject, eventdata, handles)
 % hObject    handle to GoBttn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+activate(handles,'Configuration','off');
+activate(handles,'Display','off');
+activate(handles,'Control','off');
 handles.output.acquire;
-activate(handles,'Acquisition','off');
 while ~handles.output.acquired
     pause(0.01)
 end
@@ -264,11 +274,15 @@ function NewBttn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 Control=handles.output.Control;
+Hardware=handles.output.Hardware;
 handles.output=RTData;
+handles.output.Hardware=Hardware;
 handles.output.Control=Control;
 guidata(hObject,handles);
 SetValueToGUI(handles);
-activate(handles,'Acquisition','on');
+activate(handles,'Display','on');
+activate(handles,'Control','on');
+activate(handles,'Configuration','on');
 
 % --- Executes on button press in CloseBttn.
 function CloseBttn_Callback(hObject, eventdata, handles)
@@ -378,18 +392,20 @@ function CheckBttn_Callback(hObject, eventdata, handles)
 % hObject    handle to CheckBttn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-freq=handles.output.check_arduino;
-set(handles.CheckTxt,'String',sprintf('%f',freq));
+actual_delay=handles.output.check_arduino;
+set(handles.CheckTxt,'String',sprintf('%f ms (%.2f Hz)',actual_delay,1000/actual_delay));
+
 
 % --- Executes on button press in SetBttn.
 function SetBttn_Callback(hObject, eventdata, handles)
 % hObject    handle to SetBttn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+GUIHardwareSettings(handles.output);
+handles.output.set_arduino_parameters(1);
 activate(handles,'Display','on')
 activate(handles,'Options','on')
 activate(handles,'Control','on')
-GUIHardwareSettings(handles.output);
 SetGUIToValue(handles);
 
 

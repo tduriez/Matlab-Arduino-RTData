@@ -79,6 +79,9 @@ classdef RTData < handle
         end
         
         function obj=open_port(obj)
+            if strcmpi(obj.Hardware.Port,'undefined');
+                error('No serial port has been set up for communication with hardware');
+            end
             obj.Hardware.Serial=serial(obj.Hardware.Port);
             set(obj.Hardware.Serial,'DataBits',8);
             set(obj.Hardware.Serial,'BaudRate',9600);
@@ -101,6 +104,7 @@ classdef RTData < handle
         
         obj  = acquire(obj)     
         obj  = control(obj)
+        obj  = stop(obj)
         freq = check_arduino(obj)
         obj  = set_arduino_parameters(obj,ChangeSettings)
                save(obj)

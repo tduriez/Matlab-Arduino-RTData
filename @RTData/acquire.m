@@ -42,7 +42,8 @@ function obj=acquire(obj)
             save lasterr err
             throw(err)
         end
-        obj.close_port
+        obj.stop;
+        obj.close_port;
         obj.acquired=1;
         obj.save;
         
