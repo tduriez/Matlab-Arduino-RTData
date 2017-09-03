@@ -1,30 +1,45 @@
 function varargout = RTDataGUI(varargin)
-% RTDATAGUI MATLAB code for RTDataGUI.fig
-%      RTDATAGUI, by itself, creates a new RTDATAGUI or raises the existing
-%      singleton*.
+% RTDATAGUI Calls the user interface for RTData experiments
 %
-%      H = RTDATAGUI returns the handle to a new RTDATAGUI or the handle to
-%      the existing singleton*.
+%      RTDATAGUI is a user interface which allows the setting up and use of
+%      a microcontroller burned with the Matlab-Arduino-RTData toolbox
+%      provided execution code.
 %
-%      RTDATAGUI('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in RTDATAGUI.M with the given input arguments.
+%      This should result in the ability to acquire up to 12 channels, at
+%      up to (at least) 1kHz (each), while also ensuing commands through
+%      (for now) one digital output.
 %
-%      RTDATAGUI('Property','Value',...) creates a new RTDATAGUI or raises the
-%      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before RTDataGUI_OpeningFcn gets called.  An
-%      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to RTDataGUI_OpeningFcn via varargin.
+%      RTDATAGUI doesn't need any arguments.
+%      
+%      The normal following course of events would be to press the SET
+%      button, prescribe the serial port where the micro-controller is
+%      plugged in, and then at some point press the GO button. 
 %
-%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
-%      instance to run (singleton)".
+%      Real-Time Data acquisition should ensue. It can be stopped by
+%      closing the real-time display figure.
 %
-% See also: GUIDE, GUIDATA, GUIHANDLES
+%      Data can be saved either automatically or on button press.
+%
+% See also: RTData
+%   Copyright (c) 2017, Thomas Duriez (Distributed under GPLv3)
 
-% Edit the above text to modify the response to help RTDataGUI
+%% Copyright
+%    Copyright (c) 2017, Thomas Duriez (thomas.duriez@gmail.com)
+%
+%    This program is free software: you can redistribute it and/or modify
+%    it under the terms of the GNU General Public License as published by
+%    the Free Software Foundation, either version 3 of the License, or
+%    (at your option) any later version.
+%
+%    This program is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+%
+%    You should have received a copy of the GNU General Public License
+%    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-% Last Modified by GUIDE v2.5 01-Sep-2017 22:19:37
 
-% Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
@@ -41,7 +56,7 @@ if nargout
 else
     gui_mainfcn(gui_State, varargin{:});
 end
-% End initialization code - DO NOT EDIT
+
 
 
 % --- Executes just before RTDataGUI is made visible.

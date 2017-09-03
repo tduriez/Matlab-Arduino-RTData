@@ -1,9 +1,36 @@
-function obj=set_arduino_parameters(obj,ChangeSettings)
-    
-    Settings_sep=[repmat('-',[1 72]) '\n'];
+function obj=set_arduino_parameters(obj,SendToArduino)
+%SET_ARDUINO_PARAMETERS     method of the RTData class. Performs actions 
+%                           necessary when hardware configuration is
+%                           changed
+%
+%   This function is called by the RTData class callbacks and should not be
+%   called manually. See code for comments.
+%
+%   See also: RTData
+%   Copyright (c) 2017, Thomas Duriez (Distributed under GPLv3)
+
+%% Copyright
+%    Copyright (c) 2017, Thomas Duriez (thomas.duriez@gmail.com)
+%
+%    This program is free software: you can redistribute it and/or modify
+%    it under the terms of the GNU General Public License as published by
+%    the Free Software Foundation, either version 3 of the License, or
+%    (at your option) any later version.
+%
+%    This program is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+%
+%    You should have received a copy of the GNU General Public License
+%    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-    if ~ChangeSettings
+
+    Settings_sep=[repmat('-',[1 72]) '\n']; % just a display line.
+
+%% Changes in voltage scaling per board
+    if ~SendToArduino
         fprintf(Settings_sep);
         fprintf('Changing Arduino voltage configuration to %s\n',obj.Hardware.arduino);
         switch lower(obj.Hardware.arduino)
@@ -27,7 +54,8 @@ function obj=set_arduino_parameters(obj,ChangeSettings)
         fprintf(Settings_sep);
     end
     
-    if ChangeSettings
+%% Changes in the board execution loop for acquisition.
+    if SendToArduino
         obj.open_port;
         fprintf(Settings_sep);
         fprintf('Arduino internal settings:\n')
