@@ -42,16 +42,24 @@ On the other side, the acquisition function (RTData/acquire) opens a display and
 ## Installation
 
 1- Download/Clone the repository.
+
 2- Add the Matlab-Arduino-RTData folder to the matlab path.
+
 3- Burn the Arduino-RTData/Arduino-RTdata.ino script on you Arduino Due.
+
 
 ## Quick start
 
-1- Connect the Native Serial Port of the Arduino Due to your computer
+1- Connect the Native Serial Port of the Arduino Due to your computer.
+
 2- Identify to which serial port it corresponds (a universal way is through the Arduino software, Tools/Ports). 
+
 3- Launch the user interface in matlab: RTDataGUI
+
 4- Press SET, and select the serial port where the Native Serial Port of the Arduino is connected, and press Set.
+
 5- Press GO.
+
 6- Close the real-time display when finished with acquisition and press save now to save the experiment.
 
 
