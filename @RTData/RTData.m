@@ -1,5 +1,52 @@
 classdef RTData < handle
-%RTData Matlab class
+%RTData Real-Time Data class.
+%
+%   Matlab class made for the acquisition and display of analog signals
+%   through a serial port in real time.
+%
+%   RTData properties:
+%   Time     - (1xNt) vector, containing time stamps from the hardware.
+%   Data     - (NsxNt) matrix, containing the analog signal received.
+%   Action   - (NbxNt) matrix, containing the actuation signals.
+%
+%   nPoints  -  Max number of points to display in one graph.
+%   tFrame   -  Time span of the graph in seconds.
+%   fRefresh -  Frequency (Hz) of refresh of the graph.
+%   Name     -  Experiment name.
+%
+%   Control  - Control type and parameters.
+%   Hardware - Hardware configuration.
+%
+%   RTData methods:
+%   acquire        - starts acquisition.
+%   control        - send control instruction contained in Control.
+%   stop           - stops any actuation.
+%   check_arduino  - returns the actual loop delay of the arduino
+%
+%   open_port      - opens serial port specified in Hardware.Port.
+%   close_port     - closes and delete serial port object.
+%   addmeasure     - adds one measurement point.
+%
+%   See also: RTDataGUI
+%   Copyright (c) 2017, Thomas Duriez (Distributed under GPLv3)
+
+%% Copyright
+%    Copyright (c) 2017, Thomas Duriez (thomas.duriez@gmail.com)
+%
+%    This program is free software: you can redistribute it and/or modify
+%    it under the terms of the GNU General Public License as published by
+%    the Free Software Foundation, either version 3 of the License, or
+%    (at your option) any later version.
+%
+%    This program is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+%
+%    You should have received a copy of the GNU General Public License
+%    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
