@@ -6,10 +6,13 @@ int i = 0;
 int j= 0;
 int Pins[12];
 int Trig = 2;
-int TheDelay = 10;
-int nMeasures = 100;
+int TheDelay = 1;
+int nMeasures = 10;
 int nSensors = 12;
 unsigned long InitTime;
+unsigned long Last_loop;
+
+
 int Sensors[12];
 int Control;
 unsigned long ActTime[1];
@@ -58,16 +61,33 @@ void rescaleSensors(int Sensors[], int nSensors, int nMeasures) {
   }
 }
 
-void sendSensors(int Sensors[], int Control, int nSensors) {
-    SerialUSB.print("S ");
-    SerialUSB.print(millis());
-    SerialUSB.print(" ");
-  for (i = 0; i < nSensors; i++) {
-    SerialUSB.print(Sensors[i]);
-    SerialUSB.print(" ");
-  }
-  SerialUSB.print("C ");
-  SerialUSB.println(Control);
+void SlowerThanLightWriter(int Sensors[], int Control, int nSensors) {
+    byte thebuffer[30];
+    char str[31];
+    int iBit;
+    int iChar=0;
+    int jSensors=0;
+    unsigned long thetime;
+    int trans[4]={24,16,8,0};
+    thetime=micros();
+    for (iBit=0;iBit<4;iBit++) {
+      thebuffer[iChar]=(thetime >> trans[iBit]) & 0xFF;
+      iChar++;
+      
+    }
+    for (jSensors=0;jSensors<nSensors;jSensors++) {
+      for (iBit=2;iBit<4;iBit++) {
+        thebuffer[iChar]=(Sensors[jSensors] >> trans[iBit]) & 0xFF;
+        iChar++;
+      }
+    }
+    for (iBit=2;iBit<4;iBit++) {
+        thebuffer[iChar]=255;
+        iChar++;
+    }
+    
+    SerialUSB.write(thebuffer,iChar);
+    SerialUSB.println("");
 }
 
 int control(unsigned long ActTime[],unsigned long ActTimeOut[],int ActParams[]) {
@@ -117,7 +137,6 @@ void setup() {
   ActTimeOut[0]=0;
   analogReadResolution(12);
   SerialUSB.begin(9600);  
-  SerialUSB.begin(9600);
   pinMode(ActionPin, OUTPUT);
 }
 
@@ -143,12 +162,11 @@ void loop() {
     Control=control(ActTime,ActTimeOut,ActParams);
 
     /* Send Results */
-    sendSensors(Sensors, Control, nSensors);
+    SlowerThanLightWriter(Sensors, Control, nSensors);
 
    
     
-    /* Enforce loop period */
-    delay(TheDelay);
+    
 
     /* Manage messages from outside */
     if (SerialUSB.available() > 0) {
@@ -193,13 +211,13 @@ void loop() {
         ActTime[0]=millis();
         ActTimeOut[0]=millis()+ActParams[0];
       }
-       if (FromSerialUSBBuffer[0]==75) {// 75 is K
-        digitalWrite(ActionPin,LOW);
-        ActParams[1]=1;
-        ActTime[0]=4294967295;
-        ActTimeOut[0]=0;
     }
+
+    /* Enforce loop period */
+    while (micros()-Last_loop<95) {
+     delayMicroseconds(1);
     }
+     Last_loop=micros();
 
 
 
