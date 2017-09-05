@@ -7,7 +7,7 @@ int j= 0;
 int Pins[12];
 int Trig = 2;
 int TheDelay = 1;
-int nMeasures = 10;
+int nMeasures = 1;
 int nSensors = 12;
 unsigned long InitTime;
 unsigned long Last_loop;
@@ -214,7 +214,7 @@ void loop() {
     }
 
     /* Enforce loop period */
-    while (micros()-Last_loop<95) {
+    while (micros()-Last_loop<TheDelay) {
      delayMicroseconds(1);
     }
      Last_loop=micros();

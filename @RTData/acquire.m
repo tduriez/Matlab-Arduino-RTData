@@ -87,6 +87,23 @@ function obj=acquire(obj)
     end
 end
 
+function [nbSensors,nbControl]=SlowerThanLightDocking(obj)
+    dummy=zeros(1,100);
+    dummy(1:50)=fread(obj.Hardware.Serial,50,'uint8');
+    for i=51:100
+        if all(dummy(i-4:i-1)==[255 255 13 10]')
+            break
+        end
+        dummy(i)=fread(obj.Hardware.Serial,1,'uint8');
+    end
+
+end
+
+function [Marker,time_init]=SlowerThanLightReader(obj,Marker,time_init,nbSensors,nbControls)
+    
+
+end
+
 function [Marker,time_init]=GetDataFromSerial(obj,Marker,time_init,nbSensors,nbControls)
     msg=fscanf(obj.Hardware.Serial);
     if Marker==2 % If display is closed
