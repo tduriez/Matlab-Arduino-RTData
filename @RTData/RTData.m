@@ -131,7 +131,7 @@ classdef RTData < handle
             end
             obj.Hardware.Serial=serial(obj.Hardware.Port);
             set(obj.Hardware.Serial,'DataBits',8);
-            set(obj.Hardware.Serial,'BaudRate',9600);
+            set(obj.Hardware.Serial,'BaudRate',115200);
             set(obj.Hardware.Serial,'StopBits',1);
             set(obj.Hardware.Serial,'Parity','none');
             set(obj.Hardware.Serial,'InputBufferSize',512*1024);

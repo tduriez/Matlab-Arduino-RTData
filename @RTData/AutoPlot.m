@@ -36,7 +36,6 @@ end
 
 %% Refreshing
 if mod(numel(h.Time),h.graphics.nRefresh)==0
- 
     if isempty(h.tFrame)         % if no time frame is specified
         DisplayTime=h.Time;      % draw all data always
         DisplayData=h.Data;
@@ -66,7 +65,7 @@ if mod(numel(h.Time),h.graphics.nRefresh)==0
         end
         
         if numel(h.graphics.text_handles)>0
-            set(h.graphics.text_handles(1),'String',sprintf('%3.2f s',toc));
+            set(h.graphics.text_handles(1),'String',sprintf('%3.2f s, %d bytes',toc,get(h.Hardware.Serial,'BytesAvailable')));
         end
     end
     
