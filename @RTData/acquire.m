@@ -1,4 +1,4 @@
-function obj=acquire(obj)
+function obj=acquire(obj,acquisition_time)
 % ACQUIRE    Acquires in real-time. Method of the RTData class.
 %
 % ACQUIRE opens the serial object and opens a new real-time display. It
@@ -30,39 +30,66 @@ function obj=acquire(obj)
 %    You should have received a copy of the GNU General Public License
 %    along with this program.  If not, see <http://www.gnu.org/licenses/>.
     if ~obj.acquired
+        if nargin<2
+            acquisition_time=[];
+        end
         obj.open_port;
         try
             warning('off','MATLAB:callback:PropertyEventError');
             tic %keeps track of real time from start of acquisition
-            TheFig=figure; 
+            
+            
             fscanf(obj.Hardware.Serial); %get rid of serial content
                                          %might contain rubish at arduino
                                          %start
+                                         
+            %% determine nb sensors and controls              
             nbSensors=obj.Hardware.Channels;
             nbControls=1;
-            iTest=0;
-            
-            %% determine nb sensors and controls
-            
-            
-            nbFigs=obj.Hardware.Channels+1;
+            nbFigs=nbSensors+nbControls;
             
             %% Launch real-time display
-            obj.makeLiveInterface(nbFigs,TheFig);
+            if isempty(acquisition_time)
+                TheFig=figure;
+                obj.makeLiveInterface(nbFigs,TheFig);
+            else
+                try
+                close(666)
+                catch
+                end
+                TheFig=666;
+                obj.makeTrigger;
+            end
+            
             
             %% Acquire data
             Marker=1; % indicates first acquisition for initial time tracking
             time_init=0;
-            SlowerThanLightDocking(obj);
+            obj.STLDocking;
+            obj.STLCargoManagement('open');
             while ishandle(TheFig)  %closing the display stops the acquisition
-                [Marker,time_init]=SlowerThanLightReader(obj,Marker,time_init,nbSensors,nbControls);
+                [time_init]=obj.STLReceive(time_init,Marker,nbSensors,nbControls);
             end
-            Tend=toc;
-            while obj.Time(end)<Tend %% Purging the cache up to real time figure closing
-                SlowerThanLightReader(obj,2,time_init,nbSensors,nbControls);
+            
+            if isempty(acquisition_time)
+                Tend=toc;
+            else
+                Tend=acquisition_time;
             end
+            Marker=2; % indicates no graphics
+            while true % Purging the cache up to real time figure closing
+                       % or acquiring up to prescribed time   
+                if obj.iMeasurements>0
+                    if obj.Time(obj.iMeasurements)>Tend
+                        break;
+                    end
+                end
+                [time_init]=obj.STLReceive(time_init,Marker,nbSensors,nbControls);
+            end
+            obj.STLCargoManagement('close');
         catch err
             obj.close_port
+            save lasterr err
             throw(err)
         end
         obj.stop; %stoping unmonitored control
@@ -74,67 +101,5 @@ function obj=acquire(obj)
     end
 end
 
-function [nbSensors,nbControl]=SlowerThanLightDocking(obj)
-    dummy=fread(obj.Hardware.Serial,50,'uint8');
-    for i=51:100
-        if all(dummy(i-4:i-1)==[255 255 13 10]')
-            return
-        end
-        dummy(i)=fread(obj.Hardware.Serial,1,'uint8');
-    end
-end
 
-function [Marker,time_init]=SlowerThanLightReader(obj,Marker,time_init,nbSensors,nbControls)
-    if Marker==2 % If display is closed
-        warning('off','MATLAB:callback:error');
-    else
-        drawnow limitrate % skip drawings if cannot keep up
-    end
-    CargoBitSize=8+nbSensors*2;
-    nBuffer=get(obj.Hardware.Serial,'BytesAvailable');
-    nbacquis=floor(nBuffer/CargoBitSize);
-    if nbacquis==0
-        return;
-    end
-    dummy=fread(obj.Hardware.Serial,CargoBitSize*nbacquis,'uint8');
-    Sensors=zeros(1,nbSensors);
-    for nba=1:nbacquis
-        a=dummy(1+CargoBitSize*(nba-1):CargoBitSize*nba);
-        TheTime=a(1)*2^24+a(2)*2^16+a(3)*2^8+a(4);
-        for k=1:nbSensors
-            Sensors(k)=a(5+2*(k-1))*2^8+a(6+2*(k-1))/2^obj.Hardware.Bits *obj.Hardware.Volts;
-        end
-        obj.addmeasure(TheTime/10^6,Sensors,0);
-    end
-end
 
-function [Marker,time_init]=GetDataFromSerial(obj,Marker,time_init,nbSensors,nbControls)
-    msg=fscanf(obj.Hardware.Serial);
-    if Marker==2 % If display is closed
-        warning('off','MATLAB:callback:error');
-    else
-        drawnow limitrate % skip drawings if cannot keep up
-    end
-    
-    % Structure of msg from serial:
-    % 'S 21 12351 CargoBitSize15 123 12516 CargoBitSize131 C 1'
-    %   time       sensors             control
-    %    ms         level               0/1
-    if strfind(msg(1),'S');
-        idx=[strfind(msg,' ') numel(msg+1)];
-        TheTime=str2double(msg(idx(1)+1:idx(2)-1));
-        if Marker==1
-            Marker=0;
-            time_init=TheTime;
-        end
-        Sensor=zeros(1,nbSensors);
-        Control=zeros(1,nbControls);
-        for k=2:nbSensors+1
-            Sensor(k-1)=str2double(msg(idx(k)+1:idx(k+1)-1))/2^obj.Hardware.Bits *obj.Hardware.Volts;
-        end
-        for k=1:nbControls
-           Control(k)=str2double(msg(idx(nbSensors+k+2)+1:idx(nbSensors+k+3)-1));
-        end
-        obj.addmeasure((TheTime-time_init)/1000,Sensor,Control); %time is obtained in ms.
-    end
-end

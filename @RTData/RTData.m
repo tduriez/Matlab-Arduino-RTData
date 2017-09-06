@@ -82,12 +82,14 @@ classdef RTData < handle
     
 %% Hidden, unaccessible magic properties (a.k.a. dirty tweaks)    
     properties (Hidden, SetAccess=private)
-        graphics        % Structure with graphic handles and preprocessed info
-        acquired=0      % Each RTData object can only be acquired once
-        arduino='due'   % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
-        delay=200       % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
-        Channels=2      % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
-        nMeasures=100   % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
+        nBuffer=1000*60*10 % Provision for 10 minutes at 1kHz
+        iMeasurements=0    % used while acquiring
+        graphics           % Structure with graphic handles and preprocessed info
+        acquired=0         % Each RTData object can only be acquired once
+        arduino='due'      % Used to keep track of harware change          %%TODO will disappear once Hardware is a class with listener
+        delay=1000         % Used to keep track of harware change          %%TODO will disappear once Hardware is a class with listener
+        Channels=12        % Used to keep track of harware change          %%TODO will disappear once Hardware is a class with listener
+        nMeasures=1        % Used to keep track of harware change          %%TODO will disappear once Hardware is a class with listener
     end
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -110,21 +112,22 @@ classdef RTData < handle
            obj.Hardware.arduino='due';
            obj.Hardware.Bits=12;
            obj.Hardware.Volts=3.3;
-           obj.Hardware.Channels=2;
-           obj.Hardware.nMeasures=100;
-           obj.Hardware.delay=200;
+           obj.Hardware.Channels=12;
+           obj.Hardware.nMeasures=1;
+           obj.Hardware.delay=1000;
            addlistener(obj,'Time','PostSet',@RTData.AutoPlot);
            addlistener(obj,'Hardware','PostSet',@RTData.HardwareChange);
         end
 
 %% Other methods
-        function obj=addmeasure(obj,t,sensors,control)
-            obj.Data(end+1,:)=sensors(:);
-            obj.Action(end+1,:)=control(:);
-            obj.Time(end+1,1)=t;
-            
-        end
+
+        % SlowerThanLight Technology 
+            STLDocking(obj);
+        obj=STLCargoManagement(obj,mode);
+    [t1,t2]=STLReceive(obj,Marker,time_init,nbSensors,nbControls); 
+        obj=STLGrocery(obj,t,s,c); %% puts data in the RTData object
         
+        % Serial communication
         function obj=open_port(obj)
             if strcmpi(obj.Hardware.Port,'undefined');
                 error('No serial port has been set up for communication with hardware');
@@ -149,7 +152,8 @@ classdef RTData < handle
             fprintf('Serial object deleted.\n');
         end
         
-        obj  = acquire(obj)     
+        % The rest
+        obj  = acquire(obj,acquisition_time)     
         obj  = control(obj)
         obj  = stop(obj)
         freq = check_arduino(obj)

@@ -85,6 +85,8 @@ void SlowerThanLightWriter(int Sensors[], int Control, int nSensors) {
         thebuffer[iChar]=255;
         iChar++;
     }
+
+    thebuffer[4]=thebuffer[4]+128*Control;  // Using bit 16 of 2bytes from the 12bits first sensor
     
     SerialUSB.write(thebuffer,iChar);
     SerialUSB.println("");
@@ -136,7 +138,8 @@ void setup() {
   ActTime[0]=4294967295;
   ActTimeOut[0]=0;
   analogReadResolution(12);
-  SerialUSB.begin(9600);  
+  SerialUSB.begin(9600);  //speed of this one doesn't mean anything
+  Serial.begin(9600);     //debugging
   pinMode(ActionPin, OUTPUT);
 }
 
@@ -186,28 +189,28 @@ void loop() {
           Part3[i]=FromSerialUSBBuffer[i+16];
         }
       if (FromSerialUSBBuffer[0]==78) { // If the first letter is N
-        SerialUSB.println("Changing parameters");
+        Serial.println("Changing parameters");
         nSensors=atol(Part1); 
         nMeasures=atol(Part2); 
         TheDelay=atol(Part3);    
-      SerialUSB.print("New nSensors: ");
-        SerialUSB.println(nSensors);
-        SerialUSB.print("New nMeasures: ");
-        SerialUSB.println(nMeasures);
-        SerialUSB.print("New Delay: ");
-        SerialUSB.println(TheDelay); 
+      Serial.print("New nSensors: ");
+        Serial.println(nSensors);
+        Serial.print("New nMeasures: ");
+        Serial.println(nMeasures);
+        Serial.print("New Delay: ");
+        Serial.println(TheDelay); 
       }
       if (FromSerialUSBBuffer[0]==65) { // 65 is A
-        SerialUSB.println("New staged control sequence");
+        Serial.println("New staged control sequence");
         ActParams[0]=atol(Part1);
         ActParams[1]=atol(Part2);
         ActParams[2]=atol(Part3);
-      SerialUSB.print("Pulse Width: ");
-        SerialUSB.println(ActParams[0]);
-        SerialUSB.print("Repetitions: ");
-        SerialUSB.println(ActParams[1]);
-        SerialUSB.print("Delay: ");
-        SerialUSB.println(ActParams[2]); 
+      Serial.print("Pulse Width: ");
+        Serial.println(ActParams[0]);
+        Serial.print("Repetitions: ");
+        Serial.println(ActParams[1]);
+        Serial.print("Delay: ");
+        Serial.println(ActParams[2]); 
         ActTime[0]=millis();
         ActTimeOut[0]=millis()+ActParams[0];
       }
