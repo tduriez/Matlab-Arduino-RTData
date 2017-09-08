@@ -52,6 +52,7 @@ function obj=acquire(obj,acquisition_time)
             if isempty(acquisition_time)
                 TheFig=figure;
                 obj.makeLiveInterface(nbFigs,TheFig);
+                drawnow;
             else
                 try
                 close(666)
@@ -74,12 +75,14 @@ function obj=acquire(obj,acquisition_time)
             if isempty(acquisition_time)
                 Tend=toc;
             else
-                Tend=acquisition_time;
+                Tend=acquisition_time
             end
+            fprintf('No display mode engaged\n');
             Marker=2; % indicates no graphics
             while true % Purging the cache up to real time figure closing
                        % or acquiring up to prescribed time   
                 if obj.iMeasurements>0
+                    obj.Time(obj.iMeasurements)
                     if obj.Time(obj.iMeasurements)>Tend
                         break;
                     end
@@ -100,6 +103,3 @@ function obj=acquire(obj,acquisition_time)
         fprintf('Data already collected for this object\n')
     end
 end
-
-
-

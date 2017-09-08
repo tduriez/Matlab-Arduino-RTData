@@ -82,7 +82,7 @@ classdef RTData < handle
     
 %% Hidden, unaccessible magic properties (a.k.a. dirty tweaks)    
     properties (Hidden, SetAccess=private)
-        nBuffer=1000*60*10 % Provision for 10 minutes at 1kHz
+        nBuffer=1000*60*100 % Provision for 10 minutes at 1kHz
         iMeasurements=0    % used while acquiring
         graphics           % Structure with graphic handles and preprocessed info
         acquired=0         % Each RTData object can only be acquired once

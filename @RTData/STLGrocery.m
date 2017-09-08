@@ -1,12 +1,16 @@
 function obj=STLGrocery(obj,time,sensors,control)
     obj.iMeasurements=obj.iMeasurements+1;
-    
+    i=obj.iMeasurements;
     if obj.iMeasurements>obj.nBuffer || isempty(obj.Time)
         obj.STLCargoManagement('more');
+        obj.nBuffer=obj.nBuffer+obj.nBuffer;
     end
-    obj.Data(obj.iMeasurements,:)=single(sensors(:));
-    obj.Action(obj.iMeasurements,:)=single(control(:));
-    obj.Time(obj.iMeasurements)=single(time);
+    
+    obj.Data(i,:)=sensors(:);
+    obj.Action(i,:)=control(:);
+    obj.Time(i)=time;
+
+
     
     %%%%%%%%%%%  obj.Time must be the last one updated 
     %         %  This triggers a callback that needs obj.Data and

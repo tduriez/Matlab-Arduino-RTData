@@ -18,16 +18,17 @@ function [time_init,TheTime]=STLReceive(obj,time_init,Marker,nbSensors,nbControl
         TheTime=a(1)*2^24+a(2)*2^16+a(3)*2^8+a(4);
         if time_init==0
             time_init=TheTime;
+            fprintf('Acquisition started\n');
         end
         for k=1:nbSensors
-            Sensors(k)=a(5+2*(k-1))*2^8+a(6+2*(k-1))/2^obj.Hardware.Bits *obj.Hardware.Volts;
+            Sensors(k)=(a(5+2*(k-1))*2^8+a(6+2*(k-1)))/2^obj.Hardware.Bits *obj.Hardware.Volts;
         end
         if any(a(end-3:end)~=[255 255 13 10]')
             fprintf('%d ',a');fprintf('\n');
         end
         % Include measurement in the RTDataObject. Also triggers AutoPlot
         % if display is open.
-        obj.STLGrocery((TheTime-time_init)/10^6,Sensors,Control);toc
+        obj.STLGrocery((TheTime-time_init)/10^6,Sensors,Control);
     end
 end
 
