@@ -1,6 +1,6 @@
 function [time,ss]=read_RT_buffer()
 
-s=serial('/dev/ttyS100');
+s=serial('/dev/ttyACM0');
 set(s,'BaudRate',115200)
 set(s,'InputBufferSize',512*1000);
 fopen(s);
@@ -31,10 +31,12 @@ while ishandle(fig)
     for nba=1:nbacquis
         iacquis=iacquis+1;
         a=aa(1+32*(nba-1):32*nba);
+        tic
         time(iacquis)=a(1)*2^24+a(2)*2^16+a(3)*2^8+a(4);
     for k=1:12
         ss(iacquis,k)=a(5+2*(k-1))*2^8+a(6+2*(k-1));
     end
+    toc
     end
     theend=a(end-3:end);
     

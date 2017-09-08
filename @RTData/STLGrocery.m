@@ -1,24 +1,28 @@
 function obj=STLGrocery(obj,time,sensors,control)
-    obj.iMeasurements=obj.iMeasurements+1;
-    i=obj.iMeasurements;
-    if obj.iMeasurements>obj.nBuffer || isempty(obj.Time)
-        obj.STLCargoManagement('more');
-        obj.nBuffer=obj.nBuffer+obj.nBuffer;
+    persistent Data Control Time
+    
+    if nargin==1
+        obj.Data=Data(1:obj.iMeasurements,:);
+        obj.Time=Time(1:obj.iMeasurements);
+        obj.Action=Control(1:obj.iMeasurements,:);
+        return
     end
     
-    obj.Data(i,:)=sensors(:);
-    obj.Action(i,:)=control(:);
-    obj.Time(i)=time;
-
-
     
-    %%%%%%%%%%%  obj.Time must be the last one updated 
-    %         %  This triggers a callback that needs obj.Data and
-    %    %    %  obj.Action with the same size(~,1) as obj.Time.
-    %   % %   %   
-    %  % ! %  %  WHY ARE YOU READING THIS ANYWAY ?
-    % %%%%%%% %
-    %         %  You are warned.
-    %%%%%%%%%%%  DO NOT CHANGE THE ORDER. Or maybe Action before Data.
-
+  
+    
+    obj.iMeasurements=obj.iMeasurements+1;
+    i=obj.iMeasurements;
+    if obj.iMeasurements>obj.nBuffer || isempty(Time)
+       Time=[Time; (zeros(obj.nBuffer,1))];
+       Control=[Control; (zeros(obj.nBuffer,numel(control)))];
+       Data=[Data; (zeros(obj.nBuffer,numel(sensors)))];
+    end
+    
+   
+    Data(i,:)=sensors;
+    Control(i,:)=control;
+    Time(i)=time;
+    AutoPlot(obj,Time,Data,Control);
+   
 end

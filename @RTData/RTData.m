@@ -82,7 +82,7 @@ classdef RTData < handle
     
 %% Hidden, unaccessible magic properties (a.k.a. dirty tweaks)    
     properties (Hidden, SetAccess=private)
-        nBuffer=1000*60*100 % Provision for 10 minutes at 1kHz
+        nBuffer=1000*60    % Provision for 10 minutes at 1kHz
         iMeasurements=0    % used while acquiring
         graphics           % Structure with graphic handles and preprocessed info
         acquired=0         % Each RTData object can only be acquired once
@@ -115,7 +115,7 @@ classdef RTData < handle
            obj.Hardware.Channels=12;
            obj.Hardware.nMeasures=1;
            obj.Hardware.delay=1000;
-           addlistener(obj,'Time','PostSet',@RTData.AutoPlot);
+          % addlistener(obj,'Time','PostSet',@RTData.AutoPlot);
            addlistener(obj,'Hardware','PostSet',@RTData.HardwareChange);
         end
 
@@ -124,7 +124,7 @@ classdef RTData < handle
         % SlowerThanLight Technology 
             STLDocking(obj);
         obj=STLCargoManagement(obj,mode);
-    [t1,t2]=STLReceive(obj,Marker,time_init,nbSensors,nbControls); 
+    [t1,t2]=STLReceive(obj,Marker,time_init,nbSensors,nbControls,Tend); 
         obj=STLGrocery(obj,t,s,c); %% puts data in the RTData object
         
         % Serial communication
@@ -153,6 +153,7 @@ classdef RTData < handle
         end
         
         % The rest
+         AutoPlot(obj,Time,Data,Control)
         obj  = acquire(obj,acquisition_time)     
         obj  = control(obj)
         obj  = stop(obj)
@@ -164,7 +165,7 @@ classdef RTData < handle
     
 %% Events callbacks    
     methods (Static, Hidden)  
-        AutoPlot(metaProp,eventData)
+       
         HardwareChange(metaProp,eventData)
     end
     

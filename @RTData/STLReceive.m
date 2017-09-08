@@ -1,4 +1,4 @@
-function [time_init,TheTime]=STLReceive(obj,time_init,Marker,nbSensors,nbControls)
+function [time_init,TheTime]=STLReceive(obj,time_init,Marker,nbSensors,nbControls,Tend)
     if Marker==2 % If display is closed
          warning('off','MATLAB:callback:error');
     else
@@ -16,10 +16,14 @@ function [time_init,TheTime]=STLReceive(obj,time_init,Marker,nbSensors,nbControl
         a=dummy(1+CargoBitSize*(nba-1):CargoBitSize*nba);
         [Control,a]=demultiplexbyte(a,nbControls);
         TheTime=a(1)*2^24+a(2)*2^16+a(3)*2^8+a(4);
+        
         if time_init==0
             time_init=TheTime;
             fprintf('Acquisition started\n');
         end
+        
+       
+        
         for k=1:nbSensors
             Sensors(k)=(a(5+2*(k-1))*2^8+a(6+2*(k-1)))/2^obj.Hardware.Bits *obj.Hardware.Volts;
         end
@@ -30,6 +34,14 @@ function [time_init,TheTime]=STLReceive(obj,time_init,Marker,nbSensors,nbControl
         % if display is open.
         obj.STLGrocery((TheTime-time_init)/10^6,Sensors,Control);
     end
+    
+     if nargin==6
+            if (TheTime-time_init)/10^6 > Tend
+                time_init=-1;
+            end
+        end
+    
+    
 end
 
 function [control,TheBytes]=demultiplexbyte(TheBytes,nbControl)

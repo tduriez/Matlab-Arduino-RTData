@@ -1,4 +1,4 @@
-function AutoPlot(metaProp,eventData)
+function AutoPlot(h,Data,Time,Control)
 %AutoPlot   Callback function of the RTData class. Called every-time new
 %           data is available
 %
@@ -24,12 +24,12 @@ function AutoPlot(metaProp,eventData)
 %    You should have received a copy of the GNU General Public License
 %    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-h=eventData.AffectedObject;
+
 
 %% determining the refresh period in number of measurements.
 if h.iMeasurements>=2 && isempty(h.graphics.nRefresh) % if not already done
     if isempty(h.graphics.dt)
-        h.graphics.dt=h.Time(2)-h.Time(1);
+        h.graphics.dt=Time(2)-Time(1);
     end
     h.graphics.nRefresh=round(1/(h.fRefresh*h.graphics.dt));
 end
@@ -38,8 +38,8 @@ end
 if mod(h.iMeasurements,h.graphics.nRefresh)==0
     fprintf('graph\n')
     if isempty(h.tFrame)         % if no time frame is specified
-        DisplayTime=h.Time(1:h.iMeasurements);      % draw all data always
-        DisplayData=h.Data(1:h.iMeasurements,:);
+        DisplayTime=Time(1:h.iMeasurements);      % draw all data always
+        DisplayData=Data(1:h.iMeasurements,:);
         
     else
         if isempty(h.graphics.iFrame)  % determine how much points
@@ -51,9 +51,9 @@ if mod(h.iMeasurements,h.graphics.nRefresh)==0
             h.graphics.nStep=max(1,round(h.graphics.iFrame/h.nPoints));
         end
         
-        DisplayTime=h.Time(max(1,h.iMeasurements-h.graphics.iFrame):h.graphics.nStep:h.iMeasurements);
-        DisplayData=[h.Data(max(1,h.iMeasurements-h.graphics.iFrame):h.graphics.nStep:h.iMeasurements,:)...
-                     h.Action(max(1,h.iMeasurements-h.graphics.iFrame):h.graphics.nStep:h.iMeasurements,:)];
+        DisplayTime=Time(max(1,h.iMeasurements-h.graphics.iFrame):h.graphics.nStep:h.iMeasurements);
+        DisplayData=[Data(max(1,h.iMeasurements-h.graphics.iFrame):h.graphics.nStep:h.iMeasurements,:)...
+                     Control(max(1,h.iMeasurements-h.graphics.iFrame):h.graphics.nStep:h.iMeasurements,:)];
     end
    
     if ~isempty(h.graphics.plot_handles) % if display is not closed.

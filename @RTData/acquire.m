@@ -35,11 +35,16 @@ function obj=acquire(obj,acquisition_time)
         end
         obj.open_port;
         try
-            warning('off','MATLAB:callback:PropertyEventError');
+            warning('off','MATLAB:callback:PropertyEventError');if obj.iMeasurements>0
+                    obj.Time(obj.iMeasurements)
+                    if obj.Time(obj.iMeasurements)>Tend
+                        return;
+                    end
+                end
             tic %keeps track of real time from start of acquisition
             
             
-            fscanf(obj.Hardware.Serial); %get rid of serial content
+%            fscanf(obj.Hardware.Serial); %get rid of serial content
                                          %might contain rubish at arduino
                                          %start
                                          
@@ -67,7 +72,7 @@ function obj=acquire(obj,acquisition_time)
             Marker=1; % indicates first acquisition for initial time tracking
             time_init=0;
             obj.STLDocking;
-            obj.STLCargoManagement('open');
+            
             while ishandle(TheFig)  %closing the display stops the acquisition
                 [time_init]=obj.STLReceive(time_init,Marker,nbSensors,nbControls);
             end
@@ -75,21 +80,15 @@ function obj=acquire(obj,acquisition_time)
             if isempty(acquisition_time)
                 Tend=toc;
             else
-                Tend=acquisition_time
+                Tend=acquisition_time;
             end
             fprintf('No display mode engaged\n');
             Marker=2; % indicates no graphics
-            while true % Purging the cache up to real time figure closing
-                       % or acquiring up to prescribed time   
-                if obj.iMeasurements>0
-                    obj.Time(obj.iMeasurements)
-                    if obj.Time(obj.iMeasurements)>Tend
-                        break;
-                    end
-                end
-                [time_init]=obj.STLReceive(time_init,Marker,nbSensors,nbControls);
+            while time_init>=0 % Purging the cache up to real time figure closing
+                               % or acquiring up to prescribed time   
+                [time_init]=obj.STLReceive(time_init,Marker,nbSensors,nbControls,Tend);
             end
-            obj.STLCargoManagement('close');
+            obj.STLGrocery;
         catch err
             obj.close_port
             save lasterr err
