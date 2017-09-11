@@ -76,7 +76,9 @@ function obj=acquire(obj)
             end
         catch err
             obj.close_port
+            save lasterr err
             throw(err)
+            
         end
         obj.stop; %stoping unmonitored control
         obj.close_port;
@@ -92,7 +94,7 @@ function [Marker,time_init]=GetDataFromSerial(obj,Marker,time_init,nbSensors,nbC
     if Marker==2 % If display is closed
         warning('off','MATLAB:callback:error');
     else
-        drawnow limitrate % skip drawings if cannot keep up
+        drawnow %limitrate % skip drawings if cannot keep up
     end
     
     % Structure of msg from serial:

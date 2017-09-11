@@ -85,9 +85,9 @@ classdef RTData < handle
         graphics        % Structure with graphic handles and preprocessed info
         acquired=0      % Each RTData object can only be acquired once
         arduino='due'   % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
-        delay=200       % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
-        Channels=2      % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
-        nMeasures=100   % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
+        delay=10       % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
+        Channels=3      % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
+        nMeasures=10   % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
     end
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -110,9 +110,9 @@ classdef RTData < handle
            obj.Hardware.arduino='due';
            obj.Hardware.Bits=12;
            obj.Hardware.Volts=3.3;
-           obj.Hardware.Channels=2;
-           obj.Hardware.nMeasures=100;
-           obj.Hardware.delay=200;
+           obj.Hardware.Channels=3;
+           obj.Hardware.nMeasures=10;
+           obj.Hardware.delay=10;
            addlistener(obj,'Time','PostSet',@RTData.AutoPlot);
            addlistener(obj,'Hardware','PostSet',@RTData.HardwareChange);
         end
@@ -129,13 +129,32 @@ classdef RTData < handle
             if strcmpi(obj.Hardware.Port,'undefined');
                 error('No serial port has been set up for communication with hardware');
             end
-            obj.Hardware.Serial=serial(obj.Hardware.Port);
+            
+            if ~isfield(obj.Hardware,'Serial')                
+                obj.Hardware.Serial=serial(obj.Hardware.Port);pause(0.1);
+                while ~isfield(obj.Hardware,'Serial')
+                    pause(0.1);
+                end
+            else
+                if ~isa(obj.Hardware.Serial,'serial')
+                   obj.Hardware.Serial=serial(obj.Hardware.Port);pause(0.1);
+                   while ~isfield(obj.Hardware,'Serial')
+                        pause(0.1);
+                   end
+                end
+            end
+            
+            if ~isa(obj.Hardware.Serial,'serial')
+                error('I give up dude')
+            end
+                
+            
             set(obj.Hardware.Serial,'DataBits',8);
-            set(obj.Hardware.Serial,'BaudRate',9600);
+            set(obj.Hardware.Serial,'BaudRate',115200);
             set(obj.Hardware.Serial,'StopBits',1);
             set(obj.Hardware.Serial,'Parity','none');
             set(obj.Hardware.Serial,'InputBufferSize',512*1024);
-            set(obj.Hardware.Serial,'Timeout',60);     
+            set(obj.Hardware.Serial,'Timeout',15);     
             % Intialisation
             fopen(obj.Hardware.Serial); %% open the port
             fprintf('Serial port ''%s'' open.\n',obj.Hardware.Port);
@@ -144,9 +163,9 @@ classdef RTData < handle
         function close_port(obj)
             fclose(obj.Hardware.Serial);
             fprintf('Serial port ''%s'' closed.\n',obj.Hardware.Port);
-            delete(obj.Hardware.Serial);
-            obj.Hardware=rmfield(obj.Hardware,'Serial');
-            fprintf('Serial object deleted.\n');
+            %delete(obj.Hardware.Serial);
+            %obj.Hardware=rmfield(obj.Hardware,'Serial');
+            %fprintf('Serial object deleted.\n');
         end
         
         obj  = acquire(obj)     

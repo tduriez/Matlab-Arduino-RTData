@@ -80,7 +80,7 @@ display_folder(handles);
 
 
 % Update handles structure
-set(gcf,'closeRequestFcn',[])
+%set(gcf,'closeRequestFcn',[])
 set(gcf, 'Position', get(0,'Screensize')); % Maximize figure. 
 
 
@@ -306,13 +306,22 @@ function NewBttn_Callback(hObject, eventdata, handles)
 Control=handles.output.Control;
 Hardware=handles.output.Hardware;
 handles.output=RTData;
-handles.output.Hardware=Hardware;
+handles.output.Hardware.Port=Hardware.Port;
+list_properties=fieldnames(Hardware);
+for k=1:numel(list_properties);
+   handles.output.Hardware.(list_properties{k})=Hardware.(list_properties{k});
+   %pause(1);
+end
+
 handles.output.Control=Control;
 guidata(hObject,handles);
 SetValueToGUI(handles);
+
+handles.output.check_arduino;
 activate(handles,'Display','on');
 activate(handles,'Control','on');
 activate(handles,'Configuration','on');
+
 
 % --- Executes on button press in CloseBttn.
 function CloseBttn_Callback(hObject, eventdata, handles)
@@ -431,7 +440,7 @@ function SetBttn_Callback(hObject, eventdata, handles)
 % hObject    handle to SetBttn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-GUIHardwareSettings(handles.output);
+HardwareSettings(handles.output);
 handles.output.set_arduino_parameters(1);
 activate(handles,'Display','on')
 activate(handles,'Options','on')
@@ -538,7 +547,7 @@ switch CtrlType
     case 'None'
         handles.output.Control=[];
     case 'Staged Sequence'
-        GUIStageSequence(handles.output);
+        StageSequence(handles.output);
     case 'Law'
     case 'MLC'
 end
