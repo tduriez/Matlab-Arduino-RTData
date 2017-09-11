@@ -23,10 +23,7 @@ function [time_init,TheTime]=STLReceive(obj,time_init,Marker,nbSensors,nbControl
         end
         
        
-        
-        for k=1:nbSensors
-            Sensors(k)=(a(5+2*(k-1))*2^8+a(6+2*(k-1)))/2^obj.Hardware.Bits *obj.Hardware.Volts;
-        end
+        Sensors=sum(reshape(a(5:6+2*(nbSensors-1)),[2 nbSensors]).*repmat([2^8; 1],[1 nbSensors]));
         if any(a(end-3:end)~=[255 255 13 10]')
             fprintf('%d ',a');fprintf('\n');
         end

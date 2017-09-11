@@ -24,7 +24,7 @@ function AutoPlot(h,Data,Time,Control)
 %    You should have received a copy of the GNU General Public License
 %    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+  if ~isempty(h.graphics.plot_handles) % if display is not closed.
 
 %% determining the refresh period in number of measurements.
 if h.iMeasurements>=2 && isempty(h.graphics.nRefresh) % if not already done
@@ -36,7 +36,6 @@ end
 
 %% Refreshing
 if mod(h.iMeasurements,h.graphics.nRefresh)==0
-    fprintf('graph\n')
     if isempty(h.tFrame)         % if no time frame is specified
         DisplayTime=Time(1:h.iMeasurements);      % draw all data always
         DisplayData=Data(1:h.iMeasurements,:);
@@ -56,7 +55,7 @@ if mod(h.iMeasurements,h.graphics.nRefresh)==0
                      Control(max(1,h.iMeasurements-h.graphics.iFrame):h.graphics.nStep:h.iMeasurements,:)];
     end
    
-    if ~isempty(h.graphics.plot_handles) % if display is not closed.
+  
         for k=1:numel(h.graphics.plot_handles)
             set(h.graphics.plot_handles(k),'XData',DisplayTime,'YData',DisplayData(:,k));
         end

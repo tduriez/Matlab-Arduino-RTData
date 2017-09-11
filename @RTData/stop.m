@@ -37,7 +37,7 @@ function obj=stop(obj)
         was_closed=1;
     end
     fprintf(obj.Hardware.Serial,'K'); % K is the Kill signal for the Arduino.
-    pause(1)
+    pause(0.01)
     if was_closed
         obj.close_port;
     end

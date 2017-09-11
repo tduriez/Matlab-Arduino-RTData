@@ -2,7 +2,7 @@ function obj=STLGrocery(obj,time,sensors,control)
     persistent Data Control Time
     
     if nargin==1
-        obj.Data=Data(1:obj.iMeasurements,:);
+        obj.Data=Data(1:obj.iMeasurements,:)/2^obj.Hardware.Bits *obj.Hardware.Volts;
         obj.Time=Time(1:obj.iMeasurements);
         obj.Action=Control(1:obj.iMeasurements,:);
         return

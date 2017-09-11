@@ -126,7 +126,8 @@ classdef RTData < handle
         obj=STLCargoManagement(obj,mode);
     [t1,t2]=STLReceive(obj,Marker,time_init,nbSensors,nbControls,Tend); 
         obj=STLGrocery(obj,t,s,c); %% puts data in the RTData object
-        
+            STLCheck(obj)
+            
         % Serial communication
         function obj=open_port(obj)
             if strcmpi(obj.Hardware.Port,'undefined');

@@ -10,9 +10,7 @@ int TheDelay = 1;
 int nMeasures = 1;
 int nSensors = 12;
 unsigned long InitTime;
-unsigned long Last_loop;
-
-
+unsigned long Last_loop, Previous_loop, mDelay;
 int Sensors[12];
 int Control;
 unsigned long ActTime[1];
@@ -123,6 +121,7 @@ int control(unsigned long ActTime[],unsigned long ActTimeOut[],int ActParams[]) 
    ***************** */
 
 void setup() {
+  mDelay=TheDelay;
   Pins[0] = 54;
   Pins[1] = 55;
   Pins[2] = 56;
@@ -139,7 +138,6 @@ void setup() {
   ActTimeOut[0]=0;
   analogReadResolution(12);
   SerialUSB.begin(9600);  //speed of this one doesn't mean anything
-  Serial.begin(9600);     //debugging
   pinMode(ActionPin, OUTPUT);
 }
 
@@ -188,39 +186,57 @@ void loop() {
         for (i=0;i<6;i++) {
           Part3[i]=FromSerialUSBBuffer[i+16];
         }
-      if (FromSerialUSBBuffer[0]==78) { // If the first letter is N
-        Serial.println("Changing parameters");
+      if (FromSerialUSBBuffer[0]==78) { // 78 is N of New parameters
         nSensors=atol(Part1); 
         nMeasures=atol(Part2); 
-        TheDelay=atol(Part3);    
-      Serial.print("New nSensors: ");
+        TheDelay=atol(Part3);
+        /*Serial.println("Changing parameters");    
+        Serial.print("New nSensors: ");
         Serial.println(nSensors);
         Serial.print("New nMeasures: ");
         Serial.println(nMeasures);
         Serial.print("New Delay: ");
-        Serial.println(TheDelay); 
+        Serial.println(TheDelay);*/ 
       }
-      if (FromSerialUSBBuffer[0]==65) { // 65 is A
-        Serial.println("New staged control sequence");
+      if (FromSerialUSBBuffer[0]==65) { // 65 is A of Action
         ActParams[0]=atol(Part1);
         ActParams[1]=atol(Part2);
-        ActParams[2]=atol(Part3);
-      Serial.print("Pulse Width: ");
+        ActParams[2]=atol(Part3); 
+        ActTime[0]=millis();
+        ActTimeOut[0]=millis()+ActParams[0];
+         /*Serial.println("New staged control sequence");
+        Serial.print("Pulse Width: ");
         Serial.println(ActParams[0]);
         Serial.print("Repetitions: ");
         Serial.println(ActParams[1]);
         Serial.print("Delay: ");
-        Serial.println(ActParams[2]); 
-        ActTime[0]=millis();
-        ActTimeOut[0]=millis()+ActParams[0];
+        Serial.println(ActParams[2]);*/
       }
+       if (FromSerialUSBBuffer[0]==81) { // 81 is Q of Query
+        // Query mode stops the loop, sends one line and waits for other Query to restart.
+        // Can effectively be used as a pause 
+        while (SerialUSB.available() < 1) {
+          SerialUSB.print(nSensors);
+          SerialUSB.print(" ");
+          SerialUSB.print(nMeasures);
+          SerialUSB.print(" ");
+          SerialUSB.print(TheDelay);
+          SerialUSB.print(" ");
+          SerialUSB.println(mDelay);
+          delay(10);
+        }
+
+        
+       }
     }
 
     /* Enforce loop period */
     while (micros()-Last_loop<TheDelay) {
      delayMicroseconds(1);
     }
+     Previous_loop=Last_loop;
      Last_loop=micros();
+     mDelay=Last_loop-Previous_loop;
 
 
 
