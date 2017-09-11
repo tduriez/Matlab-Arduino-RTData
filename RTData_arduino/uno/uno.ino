@@ -6,10 +6,11 @@ int i = 0;
 int j= 0;
 int Pins[6];
 int Trig = 2;
-int TheDelay = 10;
-int nMeasures = 100;
+int TheDelay = 1;
+int nMeasures = 1;
 int nSensors = 6;
 unsigned long InitTime;
+unsigned long Last_loop, Previous_loop, mDelay;
 int Sensors[12];
 int Control;
 unsigned long ActTime[1];
@@ -58,16 +59,35 @@ void rescaleSensors(int Sensors[], int nSensors, int nMeasures) {
   }
 }
 
-void sendSensors(int Sensors[], int Control, int nSensors) {
-    Serial.print("S ");
-    Serial.print(millis());
-    Serial.print(" ");
-  for (i = 0; i < nSensors; i++) {
-    Serial.print(Sensors[i]);
-    Serial.print(" ");
-  }
-  Serial.print("C ");
-  Serial.println(Control);
+void SlowerThanLightWriter(int Sensors[], int Control, int nSensors) {
+    byte thebuffer[30];
+    char str[31];
+    int iBit;
+    int iChar=0;
+    int jSensors=0;
+    unsigned long thetime;
+    int trans[4]={24,16,8,0};
+    thetime=micros();
+    for (iBit=0;iBit<4;iBit++) {
+      thebuffer[iChar]=(thetime >> trans[iBit]) & 0xFF;
+      iChar++;
+      
+    }
+    for (jSensors=0;jSensors<nSensors;jSensors++) {
+      for (iBit=2;iBit<4;iBit++) {
+        thebuffer[iChar]=(Sensors[jSensors] >> trans[iBit]) & 0xFF;
+        iChar++;
+      }
+    }
+    for (iBit=2;iBit<4;iBit++) {
+        thebuffer[iChar]=255;
+        iChar++;
+    }
+
+    thebuffer[4]=thebuffer[4]+128*Control;  // Using bit 16 of 2bytes from the 12bits first sensor
+    
+    Serial.write(thebuffer,iChar);
+    Serial.println("");
 }
 
 int control(unsigned long ActTime[],unsigned long ActTimeOut[],int ActParams[]) {
@@ -101,18 +121,16 @@ int control(unsigned long ActTime[],unsigned long ActTimeOut[],int ActParams[]) 
    ***************** */
 
 void setup() {
+  mDelay=TheDelay;
   Pins[0] = 23;
   Pins[1] = 24;
   Pins[2] = 25;
   Pins[3] = 26;
   Pins[4] = 27;
   Pins[5] = 28;
-  
   ActTime[0]=4294967295;
   ActTimeOut[0]=0;
-  
-  Serial.begin(9600);  
-  
+  Serial.begin(9600);  //speed of this one doesn't mean anything
   pinMode(ActionPin, OUTPUT);
 }
 
@@ -138,12 +156,11 @@ void loop() {
     Control=control(ActTime,ActTimeOut,ActParams);
 
     /* Send Results */
-    sendSensors(Sensors, Control, nSensors);
+    SlowerThanLightWriter(Sensors, Control, nSensors);
 
    
     
-    /* Enforce loop period */
-    delay(TheDelay);
+    
 
     /* Manage messages from outside */
     if (Serial.available() > 0) {
@@ -162,39 +179,57 @@ void loop() {
         for (i=0;i<6;i++) {
           Part3[i]=FromSerialBuffer[i+16];
         }
-      if (FromSerialBuffer[0]==78) { // If the first letter is N
-        Serial.println("Changing parameters");
+      if (FromSerialBuffer[0]==78) { // 78 is N of New parameters
         nSensors=atol(Part1); 
         nMeasures=atol(Part2); 
-        TheDelay=atol(Part3);    
-      Serial.print("New nSensors: ");
+        TheDelay=atol(Part3);
+        /*Serial.println("Changing parameters");    
+        Serial.print("New nSensors: ");
         Serial.println(nSensors);
         Serial.print("New nMeasures: ");
         Serial.println(nMeasures);
         Serial.print("New Delay: ");
-        Serial.println(TheDelay); 
+        Serial.println(TheDelay);*/ 
       }
-      if (FromSerialBuffer[0]==65) { // 65 is A
-        Serial.println("New staged control sequence");
+      if (FromSerialBuffer[0]==65) { // 65 is A of Action
         ActParams[0]=atol(Part1);
         ActParams[1]=atol(Part2);
-        ActParams[2]=atol(Part3);
-      Serial.print("Pulse Width: ");
+        ActParams[2]=atol(Part3); 
+        ActTime[0]=millis();
+        ActTimeOut[0]=millis()+ActParams[0];
+         /*Serial.println("New staged control sequence");
+        Serial.print("Pulse Width: ");
         Serial.println(ActParams[0]);
         Serial.print("Repetitions: ");
         Serial.println(ActParams[1]);
         Serial.print("Delay: ");
-        Serial.println(ActParams[2]); 
-        ActTime[0]=millis();
-        ActTimeOut[0]=millis()+ActParams[0];
+        Serial.println(ActParams[2]);*/
       }
-       if (FromSerialBuffer[0]==75) {// 75 is K
-        digitalWrite(ActionPin,LOW);
-        ActParams[1]=1;
-        ActTime[0]=4294967295;
-        ActTimeOut[0]=0;
+       if (FromSerialBuffer[0]==81) { // 81 is Q of Query
+        // Query mode stops the loop, sends one line and waits for other Query to restart.
+        // Can effectively be used as a pause 
+        while (Serial.available() < 1) {
+          Serial.print(nSensors);
+          Serial.print(" ");
+          Serial.print(nMeasures);
+          Serial.print(" ");
+          Serial.print(TheDelay);
+          Serial.print(" ");
+          Serial.println(mDelay);
+          delay(10);
+        }
+
+        
+       }
     }
+
+    /* Enforce loop period */
+    while (micros()-Last_loop<TheDelay) {
+     delayMicroseconds(1);
     }
+     Previous_loop=Last_loop;
+     Last_loop=micros();
+     mDelay=Last_loop-Previous_loop;
 
 
 
