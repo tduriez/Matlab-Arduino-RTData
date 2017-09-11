@@ -1,4 +1,4 @@
-function obj=acquire(obj)
+function obj=acquire(obj,acquisition_time)
 % ACQUIRE    Acquires in real-time. Method of the RTData class.
 %
 % ACQUIRE opens the serial object and opens a new real-time display. It
@@ -30,52 +30,68 @@ function obj=acquire(obj)
 %    You should have received a copy of the GNU General Public License
 %    along with this program.  If not, see <http://www.gnu.org/licenses/>.
     if ~obj.acquired
+        if nargin<2
+            acquisition_time=[];
+        end
         obj.open_port;
         try
+            warning('off','MATLAB:callback:PropertyEventError');if obj.iMeasurements>0
+                    obj.Time(obj.iMeasurements)
+                    if obj.Time(obj.iMeasurements)>Tend
+                        return;
+                    end
+                end
             tic %keeps track of real time from start of acquisition
-            TheFig=figure; 
-            fscanf(obj.Hardware.Serial); %get rid of serial content
+            
+            
+%            fscanf(obj.Hardware.Serial); %get rid of serial content
                                          %might contain rubish at arduino
                                          %start
-            nbSensors=[];
-            iTest=0;
-            
-            %% determine nb sensors and controls
-            while isempty(nbSensors);    
-                msg=fscanf(obj.Hardware.Serial); % see below GetDataFromSerial
-                                                 % for detail of msg
-                                                 % structure
-                if strfind(msg(1),'S');  
-                    idx = strfind(msg,' ');
-                    idx2 = strfind(msg,' C');
-                    idx3 = idx(idx>idx2); 
-                    idx=idx(idx<idx2);
-                    nbSensors=numel(idx)-1;
-                    nbControls=numel(idx3);
-                end
-                iTest=iTest+1;
-                if iTest>30;
-                    obj.close_port;
-                    error('Couldn''t find Data line from Arduino');
-                end
-            end
+                                         
+            %% determine nb sensors and controls              
+            nbSensors=obj.Hardware.Channels;
+            nbControls=1;
             nbFigs=nbSensors+nbControls;
             
             %% Launch real-time display
-            obj.makeLiveInterface(nbFigs,TheFig);
+            if isempty(acquisition_time)
+                TheFig=figure;
+                obj.makeLiveInterface(nbFigs,TheFig);
+                drawnow;
+            else
+                try
+                close(666)
+                catch
+                end
+                TheFig=666;
+                obj.makeTrigger;
+            end
+            
             
             %% Acquire data
             Marker=1; % indicates first acquisition for initial time tracking
             time_init=0;
+            obj.STLDocking;
+            
             while ishandle(TheFig)  %closing the display stops the acquisition
-                [Marker,time_init]=GetDataFromSerial(obj,Marker,time_init,nbSensors,nbControls);
+                [time_init]=obj.STLReceive(time_init,Marker,nbSensors,nbControls);
             end
-            Tend=toc;
-            while obj.Time(end)<Tend %% Purging the cache up to real time figure closing
-                GetDataFromSerial(obj,2,time_init,nbSensors,nbControls);
+            
+            if isempty(acquisition_time)
+                Tend=toc;
+            else
+                Tend=acquisition_time;
             end
+            fprintf('No display mode engaged\n');
+            Marker=2; % indicates no graphics
+            while time_init>=0 % Purging the cache up to real time figure closing
+                               % or acquiring up to prescribed time   
+                [time_init]=obj.STLReceive(time_init,Marker,nbSensors,nbControls,Tend);
+            end
+            obj.STLGrocery;
         catch err
             obj.close_port
+            save lasterr err
             throw(err)
         end
         obj.stop; %stoping unmonitored control
@@ -84,36 +100,5 @@ function obj=acquire(obj)
         obj.save;
     else
         fprintf('Data already collected for this object\n')
-    end
-end
-
-function [Marker,time_init]=GetDataFromSerial(obj,Marker,time_init,nbSensors,nbControls)
-    msg=fscanf(obj.Hardware.Serial);
-    if Marker==2 % If display is closed
-        warning('off','MATLAB:callback:error');
-    else
-        drawnow limitrate % skip drawings if cannot keep up
-    end
-    
-    % Structure of msg from serial:
-    % 'S 21 12351 3215 123 12516 32131 C 1'
-    %   time       sensors             control
-    %    ms         level               0/1
-    if strfind(msg(1),'S');
-        idx=[strfind(msg,' ') numel(msg+1)];
-        TheTime=str2double(msg(idx(1)+1:idx(2)-1));
-        if Marker==1
-            Marker=0;
-            time_init=TheTime;
-        end
-        Sensor=zeros(1,nbSensors);
-        Control=zeros(1,nbControls);
-        for k=2:nbSensors+1
-            Sensor(k-1)=str2double(msg(idx(k)+1:idx(k+1)-1))/2^obj.Hardware.Bits *obj.Hardware.Volts;
-        end
-        for k=1:nbControls
-           Control(k)=str2double(msg(idx(nbSensors+k+2)+1:idx(nbSensors+k+3)-1));
-        end
-        obj.addmeasure((TheTime-time_init)/1000,Sensor,Control); %time is obtained in ms.
     end
 end

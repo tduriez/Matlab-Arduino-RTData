@@ -48,8 +48,13 @@ function obj=control(obj)
 %         %
 %%%%%%%%%%%
 
-if ~isfield(obj.Hardware,'Serial');
-    fprintf('Serial port is closed');
+if ~isfield(obj.Hardware,'Serial')
+    fprintf('Serial port is closed\n');
+    return
+end
+
+if isempty(obj.Control)
+    fprintf('No control defined\n');
     return
 end
 
