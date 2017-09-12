@@ -82,7 +82,7 @@ classdef RTData < handle
     
 %% Hidden, unaccessible magic properties (a.k.a. dirty tweaks)    
     properties (Hidden, SetAccess=private)
-        nBuffer=1000*60    % Provision for 10 minutes at 1kHz
+        nBuffer=1000*60*10    % Provision for 10 minutes at 1kHz
         iMeasurements=0    % used while acquiring         
         graphics           % Structure with graphic handles and preprocessed info
         acquired=0         % Each RTData object can only be acquired once
@@ -135,7 +135,7 @@ classdef RTData < handle
             end
             obj.Hardware.Serial=serial(obj.Hardware.Port);
             set(obj.Hardware.Serial,'DataBits',8);
-            set(obj.Hardware.Serial,'BaudRate',115200);
+            set(obj.Hardware.Serial,'BaudRate',250000);
             set(obj.Hardware.Serial,'StopBits',1);
             set(obj.Hardware.Serial,'Parity','none');
             set(obj.Hardware.Serial,'InputBufferSize',512*1024);
