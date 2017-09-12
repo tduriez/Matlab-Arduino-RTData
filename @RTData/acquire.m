@@ -1,4 +1,4 @@
-function obj=acquire(obj,acquisition_time)
+function obj=acquire(obj)
 % ACQUIRE    Acquires in real-time. Method of the RTData class.
 %
 % ACQUIRE opens the serial object and opens a new real-time display. It
@@ -67,6 +67,7 @@ function obj=acquire(obj,acquisition_time)
                 obj.makeTrigger;
             end
             
+
             
             %% Acquire data
             Marker=1; % indicates first acquisition for initial time tracking
