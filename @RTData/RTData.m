@@ -82,12 +82,14 @@ classdef RTData < handle
     
 %% Hidden, unaccessible magic properties (a.k.a. dirty tweaks)    
     properties (Hidden, SetAccess=private)
-        graphics        % Structure with graphic handles and preprocessed info
-        acquired=0      % Each RTData object can only be acquired once
-        arduino='due'   % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
-        delay=200       % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
-        Channels=2      % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
-        nMeasures=100   % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
+        nBuffer=1000*60    % Provision for 10 minutes at 1kHz
+        iMeasurements=0    % used while acquiring         
+        graphics           % Structure with graphic handles and preprocessed info
+        acquired=0         % Each RTData object can only be acquired once
+        arduino='due'      % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
+        delay=1000         % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
+        Channels=3         % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
+        nMeasures=10       % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
     end
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -110,28 +112,30 @@ classdef RTData < handle
            obj.Hardware.arduino='due';
            obj.Hardware.Bits=12;
            obj.Hardware.Volts=3.3;
-           obj.Hardware.Channels=2;
-           obj.Hardware.nMeasures=100;
-           obj.Hardware.delay=200;
-           addlistener(obj,'Time','PostSet',@RTData.AutoPlot);
+           obj.Hardware.Channels=3;
+           obj.Hardware.nMeasures=10;
+           obj.Hardware.delay=1000;
+          % addlistener(obj,'Time','PostSet',@RTData.AutoPlot);
            addlistener(obj,'Hardware','PostSet',@RTData.HardwareChange);
         end
 
 %% Other methods
-        function obj=addmeasure(obj,t,sensors,control)
-            obj.Data(end+1,:)=sensors(:);
-            obj.Action(end+1,:)=control(:);
-            obj.Time(end+1,1)=t;
+
+        % SlowerThanLight Technology 
+            STLDocking(obj);
+        obj=STLCargoManagement(obj,mode);
+    [t1,t2]=STLReceive(obj,Marker,time_init,nbSensors,nbControls,Tend); 
+        obj=STLGrocery(obj,t,s,c); %% puts data in the RTData object
+            STLCheck(obj)
             
-        end
-        
+        % Serial communication
         function obj=open_port(obj)
             if strcmpi(obj.Hardware.Port,'undefined');
                 error('No serial port has been set up for communication with hardware');
             end
             obj.Hardware.Serial=serial(obj.Hardware.Port);
             set(obj.Hardware.Serial,'DataBits',8);
-            set(obj.Hardware.Serial,'BaudRate',9600);
+            set(obj.Hardware.Serial,'BaudRate',115200);
             set(obj.Hardware.Serial,'StopBits',1);
             set(obj.Hardware.Serial,'Parity','none');
             set(obj.Hardware.Serial,'InputBufferSize',512*1024);
@@ -149,7 +153,9 @@ classdef RTData < handle
             fprintf('Serial object deleted.\n');
         end
         
-        obj  = acquire(obj)     
+        % The rest
+         AutoPlot(obj,Time,Data,Control)
+        obj  = acquire(obj,acquisition_time)     
         obj  = control(obj)
         obj  = stop(obj)
         freq = check_arduino(obj)
@@ -160,7 +166,7 @@ classdef RTData < handle
     
 %% Events callbacks    
     methods (Static, Hidden)  
-        AutoPlot(metaProp,eventData)
+       
         HardwareChange(metaProp,eventData)
     end
     
