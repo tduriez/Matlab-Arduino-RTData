@@ -125,7 +125,7 @@ classdef RTData < handle
             STLDocking(obj);
         obj=STLCargoManagement(obj,mode);
     [t1,t2]=STLReceive(obj,Marker,time_init,nbSensors,nbControls,Tend); 
-        obj=STLGrocery(obj,t,s,c); %% puts data in the RTData object
+        obj=STLGrocery(obj,t,s,c,m); %% puts data in the RTData object
             STLCheck(obj)
             
         % Serial communication

@@ -36,7 +36,7 @@ for nba=1:nbacquis
     end
     % Include measurement in the RTDataObject. Also triggers AutoPlot
     % if display is open.
-    obj.STLGrocery((TheTime-time_init)/10^6,Sensors,Control);
+    obj.STLGrocery((TheTime-time_init)/10^6,Sensors,Control,Marker);
 end
 
 if nargin==6

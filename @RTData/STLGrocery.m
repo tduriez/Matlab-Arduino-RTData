@@ -1,4 +1,4 @@
-function obj=STLGrocery(obj,time,sensors,control)
+function obj=STLGrocery(obj,time,sensors,control,Marker)
 persistent Data Control Time Graph
 
 if nargin==1
@@ -14,7 +14,11 @@ if nargin==2
     return
 end
 
-
+if Marker==2
+    noplot=1;
+else
+    noplot=0;
+end
 
 
 obj.iMeasurements=obj.iMeasurements+1;
@@ -38,7 +42,7 @@ end
 Data(i,:)=sensors;
 Control(i,:)=control;
 Time(i)=time;
-if Graph(i)
+if Graph(i) && ~noplot
     AutoPlot(obj,Time,Data,Control);
 end
 
