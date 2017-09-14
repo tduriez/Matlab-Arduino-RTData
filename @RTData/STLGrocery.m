@@ -1,5 +1,5 @@
 function obj=STLGrocery(obj,time,sensors,control,Marker)
-persistent Data Control Time Graph
+persistent Data Control Time Graph Trigger
 
 if nargin==1
     obj.Data=Data(1:obj.iMeasurements,:)/2^obj.Hardware.Bits *obj.Hardware.Volts;
@@ -37,6 +37,13 @@ if i>obj.nBuffer || isempty(Time)
     Graph=mod(1:length(Time),obj.graphics.nRefresh)==0;
     Control=[Control; (zeros(obj.nBuffer,numel(control)))];
     Data=[Data; (zeros(obj.nBuffer,numel(sensors)))];
+    Trigger=[Trigger; (zeros(obj.nBuffer,1))];
+    if isfield(obj.Control,'Trigger')
+        if (length(Time)-1)*obj.graphics.dt>obj.Control.Trigger;
+            [~,idx]=min(abs((length(Time)-1)*obj.graphics.dt-obj.Control.Trigger));
+            Trigger(idx)=1;
+        end
+    end
 end
 
 Data(i,:)=sensors;
@@ -44,6 +51,10 @@ Control(i,:)=control;
 Time(i)=time;
 if Graph(i) && ~noplot
     AutoPlot(obj,Time,Data,Control);
+end
+
+if Trigger(i)
+    obj.control;
 end
 
 end
