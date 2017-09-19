@@ -132,8 +132,8 @@ function displayHardware(handles)
         set(handles.ConfigList,'String','Not configured','Value',1);
         return
     end
-    disptxt{2}=sprintf('Board:      %s',handles.output.Hardware.arduino);
-    disptxt{3}=sprintf('Loop delay: %d ms, (%.2f Hz)',handles.output.Hardware.delay,1000/handles.output.Hardware.delay);
+    disptxt{2}=sprintf('Board:      %s',handles.output.Hardware.Arduino);
+    disptxt{3}=sprintf('Loop delay: %d ms, (%.2f Hz)',handles.output.Hardware.Delay,1000/handles.output.Hardware.Delay);
     disptxt{4}=sprintf('Averaging:  %d points',handles.output.Hardware.nMeasures);
     disptxt{5}=sprintf('Channels:   %d',handles.output.Hardware.Channels);
     set(handles.ConfigList,'String',disptxt);
@@ -441,7 +441,6 @@ function SetBttn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 HardwareSettings(handles.output);
-handles.output.set_arduino_parameters(1);
 activate(handles,'Display','on')
 activate(handles,'Options','on')
 activate(handles,'Control','on')

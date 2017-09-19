@@ -36,12 +36,17 @@ classdef RTDataHardware < handle
 
     methods
         %% Constructor
-        function obj=RTDataHardware(ThePort);
+        function obj=RTDataHardware(ThePort)
             if nargin==1
                 if ~isempty(ThePort)
                     obj.Port=ThePort;
                 end
             end
+            addlistener(obj,'Arduino','PostSet',@RTDataHardware.CB_Arduino);
+            addlistener(obj,'Delay','PostSet',@RTDataHardware.CB_OnBoard);
+            addlistener(obj,'Channels','PostSet',@RTDataHardware.CB_OnBoard);
+            addlistener(obj,'nMeasures','PostSet',@RTDataHardware.CB_OnBoard);
+            addlistener(obj,'Port','PostSet',@RTDataHardware.CB_PortSet);
         end
         
         %% Proxys for serial management
@@ -69,8 +74,7 @@ classdef RTDataHardware < handle
                 obj.disp('serial');
             else
                 fprintf('Serial port %s already open\n',obj.Port)
-            end
-            
+            end  
         end
         
         function closePort(obj,nomsg)
@@ -128,12 +132,66 @@ classdef RTDataHardware < handle
                 else
                     disptxt=sprintf('%s    -Status:      %s\n',disptxt,'not created');
                 end
-                    
+            end
+            if strcmpi(mode,'all')
                 disptxt=sprintf('%s\n',disptxt);
+            end
+            if any(strcmpi(mode,{'arduino','all'}))
+                disptxt=sprintf('%s -Arduino configuration:\n',disptxt);
+                disptxt=sprintf('%s    -Type:        %s\n',disptxt,obj.Arduino);
+                disptxt=sprintf('%s         -Bits:   %d\n',disptxt,obj.Bits);
+                disptxt=sprintf('%s         -Volts:  %.1f\n',disptxt,obj.Volts);
+                disptxt=sprintf('%s    -Delay:       %d us (%.2f Hz)\n',disptxt,obj.Delay,10^6/obj.Delay);
+                disptxt=sprintf('%s    -Channels:    %d\n',disptxt,obj.Channels);
+                disptxt=sprintf('%s    -Measures:    %d\n',disptxt,obj.nMeasures);
             end
             
             disp(disptxt);
         end
+    end
+    
+     methods (Static, Hidden)  
+        %% Callbacks
+        function CB_Arduino(metaProp,eventData)
+            Settings_sep=[repmat('-',[1 72]) '\n']; 
+            obj=eventData.AffectedObject;
+            fprintf(Settings_sep);
+            fprintf('Changing Arduino voltage configuration to %s\n',obj.Arduino);
+            switch lower(obj.Arduino)
+                case 'uno'
+                    fprintf('Arduino Uno (10 bits, 5V) settings\n')
+                    obj.Bits=10;
+                    obj.Volts=5;
+                case 'mega'
+                    fprintf('Arduino Mega (10 bits, 5V) settings\n')
+                    obj.Bits=10;
+                    obj.Volts=5;
+                case 'due'
+                    fprintf('Arduino Due (12 bits, 3.3V) settings\n')
+                    obj.Bits=12;
+                    obj.Volts=3.3;
+                otherwise
+                    fprintf('Default (No scaling) settings\n')
+                    obj.Hardware.Bits=0;
+                    obj.Hardware.Volts=1;
+            end
+            fprintf(Settings_sep);
+        end
+        
+        function CB_OnBoard(metaProp,eventData)
+            Settings_sep=[repmat('-',[1 72]) '\n']; 
+            obj=eventData.AffectedObject;
+            obj.openPort;
+            fprintf(Settings_sep);
+            fprintf('Arduino internal settings:\n')
+            fprintf('\n')
+            fprintf('Channels:    %d\n',obj.Channels);
+            fprintf('Averaging:   %d\n',obj.nMeasures);
+            fprintf('Acq period:  %d\n',obj.Delay);
+            fprintf(Settings_sep);
+            fprintf(obj.Serial,sprintf('N %06d %06d %06d',obj.Channels,obj.nMeasures,obj.Delay));
+        end
+            
             
         
     end

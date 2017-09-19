@@ -100,7 +100,7 @@ function showsequence(handles)
     Width=handles.output.Control.PulseWidth;
     Reps=handles.output.Control.Repetition;
     axes(handles.axes1);
-    dt=handles.output.Hardware.delay;
+    dt=handles.output.Hardware.Delay;
     
     t=0:dt:Reps*Delay;
     control=t*0;

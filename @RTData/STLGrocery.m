@@ -28,7 +28,7 @@ if i>obj.nBuffer || isempty(Time)
     if i>=2
         obj.graphics.dt=Time(2)-Time(1);
     else
-        obj.graphics.dt=obj.Hardware.delay/10^6;
+        obj.graphics.dt=obj.Hardware.Delay/10^6;
     end
     
     obj.graphics.nRefresh=round(1/(obj.fRefresh*obj.graphics.dt));

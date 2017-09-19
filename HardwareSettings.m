@@ -84,7 +84,7 @@ uiwait(handles.figure1);
 
 function setGUItoValue(handles)
     boards=get(handles.ArduinoMenu,'String');
-    idx=strcmpi(handles.output.Hardware.arduino,boards);
+    idx=strcmpi(handles.output.Hardware.Arduino,boards);
     idx=find(idx);
     set(handles.ArduinoMenu,'Value',idx);
     
@@ -101,7 +101,7 @@ function setGUItoValue(handles)
     
     set(handles.MeasuresEdt,'String',num2str(handles.output.Hardware.nMeasures));
     
-    set(handles.DelayEdt,'String',num2str(handles.output.Hardware.delay));
+    set(handles.DelayEdt,'String',num2str(handles.output.Hardware.Delay));
     
     
 function getSerials(handles)
@@ -162,7 +162,7 @@ function DelayEdt_Callback(hObject, eventdata, handles)
 % hObject    handle to DelayEdt (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.output.Hardware.delay=str2double(get(hObject,'String'));
+handles.output.Hardware.Delay=str2double(get(hObject,'String'));
 % Hints: get(hObject,'String') returns contents of DelayEdt as text
 %        str2double(get(hObject,'String')) returns contents of DelayEdt as a double
 
@@ -186,7 +186,7 @@ function ArduinoMenu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 contents = cellstr(get(hObject,'String'));
-handles.output.Hardware.arduino=contents{get(hObject,'Value')};
+handles.output.Hardware.Arduino=contents{get(hObject,'Value')};
 % Hints: contents = cellstr(get(hObject,'String')) returns ArduinoMenu contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from ArduinoMenu
 
