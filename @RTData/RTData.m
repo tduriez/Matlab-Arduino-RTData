@@ -82,7 +82,7 @@ classdef RTData < handle
     
 %% Hidden, unaccessible magic properties (a.k.a. dirty tweaks)    
     properties (Hidden, SetAccess=private)
-        nBuffer=1000*60    % Provision for 10 minutes at 1kHz
+        nBuffer=1000*60*10    % Provision for 10 minutes at 1kHz
         iMeasurements=0    % used while acquiring         
         graphics           % Structure with graphic handles and preprocessed info
         acquired=0         % Each RTData object can only be acquired once
@@ -125,7 +125,7 @@ classdef RTData < handle
             STLDocking(obj);
         obj=STLCargoManagement(obj,mode);
     [t1,t2]=STLReceive(obj,Marker,time_init,nbSensors,nbControls,Tend); 
-        obj=STLGrocery(obj,t,s,c); %% puts data in the RTData object
+        obj=STLGrocery(obj,t,s,c,m); %% puts data in the RTData object
             STLCheck(obj)
             
         % Serial communication
@@ -135,7 +135,11 @@ classdef RTData < handle
             end
             obj.Hardware.Serial=serial(obj.Hardware.Port);
             set(obj.Hardware.Serial,'DataBits',8);
-            set(obj.Hardware.Serial,'BaudRate',115200);
+            if strcmp(computer,'GLNXA64')
+                set(obj.Hardware.Serial,'BaudRate',230400);
+            else
+                set(obj.Hardware.Serial,'BaudRate',250000);
+            end
             set(obj.Hardware.Serial,'StopBits',1);
             set(obj.Hardware.Serial,'Parity','none');
             set(obj.Hardware.Serial,'InputBufferSize',512*1024);
