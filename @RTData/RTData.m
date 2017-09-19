@@ -21,6 +21,7 @@ classdef RTData < handle
 %   acquire        - starts acquisition.
 %   control        - send control instruction contained in Control.
 %   stop           - stops any actuation.
+%   check_arduino  - returns the actual loop delay of the arduino
 %
 %   openPort      - opens serial port specified in Hardware.Port.
 %   closePort     - closes and delete serial port object.
@@ -82,6 +83,7 @@ classdef RTData < handle
         iMeasurements=0    % used while acquiring         
         graphics           % Structure with graphic handles and preprocessed info
         acquired=0         % Each RTData object can only be acquired once
+lass with listener
     end
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

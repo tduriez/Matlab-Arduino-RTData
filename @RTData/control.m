@@ -80,6 +80,10 @@ switch lower(obj.Control.Type)
         fprintf('   - Pulse width : %d ms\n',obj.Control.PulseWidth);
         fprintf('   - Repetitions : %d\n',obj.Control.Repetition);
         fprintf('   - Delay       : %d ms\n',obj.Control.Delay);
+        if isfield(obj.Control,'Trigger')
+        fprintf('   - Triggered at: %d ms\n',obj.Control.Trigger);
+        end
+        
         ctrlstring=sprintf('A %06d %06d %06d',obj.Control.PulseWidth,obj.Control.Repetition,obj.Control.Delay);
         
 end
