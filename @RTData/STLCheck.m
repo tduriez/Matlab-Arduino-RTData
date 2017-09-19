@@ -1,14 +1,18 @@
-function STLCheck(obj)
+function STLCheck(obj,mode)
+    if nargin<2
+        mode='normal';
+    end
     sep=[repmat('-',[1 70]) '\n'];
-    obj.open_port;
+    obj.openPort;
 
     fprintf(obj.Hardware.Serial,'Q');
     flushinput(obj.Hardware.Serial);
     pause(0.1);
-    for i=1:5
-        fscanf(obj.Hardware.Serial);
-    end
+    flushinput(obj.Hardware.Serial);
     a=fscanf(obj.Hardware.Serial);
+    if strcmpi(mode,'debug')
+        fprintf('From Arduino (Query): %s\n',a);
+    end
     idx=strfind(a,' ');
     nSensors=str2double(a(1:idx(1)-1));
     nMeasures=str2double(a(idx(1)+1:idx(2)-1));
@@ -17,7 +21,8 @@ function STLCheck(obj)
     fprintf(obj.Hardware.Serial,'');
     flushinput(obj.Hardware.Serial);
     pause(0.1);
-    nbSensors=obj.Hardware.Channels;
+    flushinput(obj.Hardware.Serial);
+    nbSensors=nSensors;
     nbControls=1;
     obj.STLDocking;
     time_init=0;
@@ -40,11 +45,4 @@ function STLCheck(obj)
     fprintf('Set delay:      %d\n',SetDelay);
     fprintf('Measured delay (intern): %d\n',mDelay);
     fprintf('Measured delay (extern): %d\n',round(dt));
-    
-    
-    
-
-
-
-    obj.close_port;
 end

@@ -122,7 +122,7 @@ classdef RTDataHardware < handle
             if strcmpi(mode,'all')
                 disptxt=sprintf('RTData Hardware Object:\n\n');
             end
-            if any(strcmpi(mode,{'serial','all'}))
+            if any(strcmpi(mode,{'serial','all','simple'}))
                 disptxt=sprintf('%s -Serial configuration:\n',disptxt);
                 disptxt=sprintf('%s    -Serial Port: %s\n',disptxt,obj.Port);
                 if isa(obj.Serial,'serial')
@@ -136,7 +136,7 @@ classdef RTDataHardware < handle
             if strcmpi(mode,'all')
                 disptxt=sprintf('%s\n',disptxt);
             end
-            if any(strcmpi(mode,{'arduino','all'}))
+            if any(strcmpi(mode,{'arduino','all','simple'}))
                 disptxt=sprintf('%s -Arduino configuration:\n',disptxt);
                 disptxt=sprintf('%s    -Type:        %s\n',disptxt,obj.Arduino);
                 disptxt=sprintf('%s         -Bits:   %d\n',disptxt,obj.Bits);
@@ -145,14 +145,13 @@ classdef RTDataHardware < handle
                 disptxt=sprintf('%s    -Channels:    %d\n',disptxt,obj.Channels);
                 disptxt=sprintf('%s    -Measures:    %d\n',disptxt,obj.nMeasures);
             end
-            
-            disp(disptxt);
+            fprintf(disptxt);
         end
     end
     
      methods (Static, Hidden)  
         %% Callbacks
-        function CB_Arduino(metaProp,eventData)
+        function CB_Arduino(~,eventData)
             Settings_sep=[repmat('-',[1 72]) '\n']; 
             obj=eventData.AffectedObject;
             fprintf(Settings_sep);
@@ -178,7 +177,7 @@ classdef RTDataHardware < handle
             fprintf(Settings_sep);
         end
         
-        function CB_OnBoard(metaProp,eventData)
+        function CB_OnBoard(~,eventData)
             Settings_sep=[repmat('-',[1 72]) '\n']; 
             obj=eventData.AffectedObject;
             obj.openPort;
@@ -190,6 +189,15 @@ classdef RTDataHardware < handle
             fprintf('Acq period:  %d\n',obj.Delay);
             fprintf(Settings_sep);
             fprintf(obj.Serial,sprintf('N %06d %06d %06d',obj.Channels,obj.nMeasures,obj.Delay));
+        end
+        
+        function CB_PortSet(~,eventData)
+            obj=eventData.AffectedObject;
+            if isa(obj.Serial,'serial');
+                obj.closePort(1);
+                delete(obj.Serial);
+            end
+            obj.createSerial;
         end
             
             

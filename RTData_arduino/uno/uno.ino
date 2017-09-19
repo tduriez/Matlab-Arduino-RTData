@@ -1,3 +1,4 @@
+
 /* *****************
    *** VARIABLES ***
    ***************** */
@@ -130,7 +131,7 @@ void setup() {
   Pins[5] = 28;
   ActTime[0]=4294967295;
   ActTimeOut[0]=0;
-  Serial.begin(9600);  //speed of this one doesn't mean anything
+  Serial.begin(230400);  //speed of this one doesn't mean anything
   pinMode(ActionPin, OUTPUT);
 }
 

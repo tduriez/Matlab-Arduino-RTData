@@ -25,21 +25,9 @@ function obj=stop(obj)
 %
 %    You should have received a copy of the GNU General Public License
 %    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
-    if ~isfield(obj.Hardware,'Port')
-        error('No Port is configured, can''t stop anything. Consider cutting board power.')
-    end
     
-    was_closed=0;
-    if ~isfield(obj.Hardware,'Serial') %in RTData the serial object is deleted upon closure.
-        obj.open_port;
-        was_closed=1;
-    end
+    obj.openPort;
     fprintf(obj.Hardware.Serial,'K'); % K is the Kill signal for the Arduino.
-    pause(0.01)
-    if was_closed
-        obj.close_port;
-    end
+    
 end
     

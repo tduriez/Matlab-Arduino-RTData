@@ -33,7 +33,7 @@ if ~obj.acquired
     if nargin<2
         acquisition_time=[];
     end
-    obj.open_port;
+    obj.openPort;
     try
         warning('off','MATLAB:callback:PropertyEventError');
         
@@ -86,7 +86,6 @@ if ~obj.acquired
         end
         obj.STLGrocery;
     catch err
-        obj.close_port
         fprintf('\n%s\n\n',err.message);
         for i=1:length(err.stack)
            disp(err.stack(i)); 
@@ -94,9 +93,9 @@ if ~obj.acquired
         throw(err);
     end
     obj.stop; %stoping unmonitored control
-    obj.close_port;
     obj.acquired=1;
     obj.save;
+    obj.closePort;
 else
     fprintf('Data already collected for this object\n')
 end

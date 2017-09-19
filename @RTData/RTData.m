@@ -21,11 +21,10 @@ classdef RTData < handle
 %   acquire        - starts acquisition.
 %   control        - send control instruction contained in Control.
 %   stop           - stops any actuation.
-%   check_arduino  - returns the actual loop delay of the arduino
 %
-%   open_port      - opens serial port specified in Hardware.Port.
-%   close_port     - closes and delete serial port object.
-%   addmeasure     - adds one measurement point.
+%   openPort      - opens serial port specified in Hardware.Port.
+%   closePort     - closes and delete serial port object.
+%
 %
 %   See also: RTDataGUI
 %   Copyright (c) 2017, Thomas Duriez (Distributed under GPLv3)
@@ -109,26 +108,49 @@ classdef RTData < handle
         delete(obj.Hardware);
     end
         
-%% Other methods
+%% Display overload
+    function disp(obj)
+        fprintf('RTData object:\n\n');
+        fprintf(' -name: %s\n',obj.Name);
+        if obj.acquired
+            fprintf(' -Acquired:\n');
+            fprintf('   -%d channels\n',size(obj.Data,2));
+            fprintf('   -%d acquisitions at %.f Hz (%.2f s)\n',length(obj.Time),1/diff(obj.Time(1:2)),obj.Time(end));
+        else
+            fprintf(' -Not acquired\n')
+            disp(obj.Hardware,'simple')
+            fprintf(' -graphics:\n');
+            fprintf('   -Refresh: %.1f Hz\n',obj.fRefresh);
+            fprintf('   -Points:  %d\n',obj.nPoints);
+            fprintf('   -Span:    %.1f s\n',obj.tFrame);
+        end
+            
+            
+           
+    end
+    
+    
+%% Slower Than Light Technology
 
-        % SlowerThanLight Technology 
             STLDocking(obj);
         obj=STLCargoManagement(obj,mode);
     [t1,t2]=STLReceive(obj,Marker,time_init,nbSensors,nbControls,Tend); 
         obj=STLGrocery(obj,t,s,c,m); %% puts data in the RTData object
-            STLCheck(obj)
-            
+            STLCheck(obj,mode)
+
+%% Interface
         % Serial communication
         function obj=openPort(obj)
             obj.Hardware.openPort;
         end
         
         function closePort(obj)
-            obj.Hardware.ClosePort;
+            obj.Hardware.closePort;
         end
         
-        % The rest
-         AutoPlot(obj,Time,Data,Control)
+%% Functionnalities
+
+        AutoPlot(obj,Time,Data,Control)
         obj  = acquire(obj,acquisition_time)     
         obj  = control(obj)
         obj  = stop(obj)
