@@ -27,7 +27,7 @@ function HardwareChange(metaProp,eventData)
     
     h=eventData.AffectedObject;
     
-    PropertiesToTest={'arduino','delay','Channels','nMeasures'}; % 
+    PropertiesToTest={'Arduino','Delay','Channels','nMeasures'}; % 
     
     for i=1:numel(PropertiesToTest)
         if ischar(h.Hardware.(PropertiesToTest{i}))
@@ -37,7 +37,7 @@ function HardwareChange(metaProp,eventData)
             end
         else
         if h.Hardware.(PropertiesToTest{i})~=h.(PropertiesToTest{i})
-            h.set_arduino_parameters(~strcmp(PropertiesToTest{i},'arduino'));
+            h.set_arduino_parameters(~strcmp(PropertiesToTest{i},'Arduino'));
             h.(PropertiesToTest{i})=h.Hardware.(PropertiesToTest{i});
         end
         end
