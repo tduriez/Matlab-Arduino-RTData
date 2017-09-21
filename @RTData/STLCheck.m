@@ -1,4 +1,4 @@
-function STLCheck(obj)
+function [nSensors,nMeasures,SetDelay,mDelay,mDelay2]=STLCheck(obj)
     sep=[repmat('-',[1 70]) '\n'];
     obj.open_port;
 
@@ -33,18 +33,13 @@ function STLCheck(obj)
     end
     t=t(1:nbacquis);
     dt=mean(diff(t));
+    mDelay2=round(dt);
     fprintf(sep)
     fprintf('Parameters used:\n')
     fprintf('Sensors:        %d\n',nSensors);
     fprintf('Measures:       %d\n',nMeasures);
     fprintf('Set delay:      %d\n',SetDelay);
     fprintf('Measured delay (intern): %d\n',mDelay);
-    fprintf('Measured delay (extern): %d\n',round(dt));
-    
-    
-    
-
-
-
+    fprintf('Measured delay (extern): %d\n',mDelay2);
     obj.close_port;
 end

@@ -317,7 +317,7 @@ handles.output.Control=Control;
 guidata(hObject,handles);
 SetValueToGUI(handles);
 
-handles.output.check_arduino;
+handles.output.STLCheck;
 activate(handles,'Display','on');
 activate(handles,'Control','on');
 activate(handles,'Configuration','on');
@@ -431,8 +431,8 @@ function CheckBttn_Callback(hObject, eventdata, handles)
 % hObject    handle to CheckBttn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-actual_delay=handles.output.check_arduino;
-set(handles.CheckTxt,'String',sprintf('%f ms (%.2f Hz)',actual_delay,1000/actual_delay));
+[~,~,~,actual_delay,~]=handles.output.STLCheck;
+set(handles.CheckTxt,'String',sprintf('%f ms (%.2f Hz)',actual_delay,1000000/actual_delay));
 
 
 % --- Executes on button press in SetBttn.
