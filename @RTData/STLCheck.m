@@ -1,16 +1,18 @@
 function [nSensors,nMeasures,SetDelay,mDelay,mDelay2]=STLCheck(obj,mode)
  try
-   if nargin<2
+    if nargin<2
         mode='normal';
     end
     sep=[repmat('-',[1 70]) '\n'];
     obj.openPort;
-
-    fprintf(obj.Hardware.Serial,'Q');
+    
+    fwrite(obj.Hardware.Serial,repmat(255,[1 11]));
     flushinput(obj.Hardware.Serial);
     pause(0.1);
     flushinput(obj.Hardware.Serial);
+    for i=1:5
     a=fscanf(obj.Hardware.Serial);
+    end
     if strcmpi(mode,'debug')
         fprintf('From Arduino (Query): %s\n',a);
     end
