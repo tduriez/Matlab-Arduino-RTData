@@ -1,6 +1,6 @@
-function STLCheck(obj,mode)
-try
-    if nargin<2
+function [nSensors,nMeasures,SetDelay,mDelay,mDelay2]=STLCheck(obj,mode)
+ try
+   if nargin<2
         mode='normal';
     end
     sep=[repmat('-',[1 70]) '\n'];
@@ -39,13 +39,14 @@ try
     end
     t=t(1:nbacquis);
     dt=mean(diff(t));
+    mDelay2=round(dt);
     fprintf(sep)
     fprintf('Parameters used:\n')
     fprintf('Sensors:        %d\n',nSensors);
     fprintf('Measures:       %d\n',nMeasures);
     fprintf('Set delay:      %d\n',SetDelay);
     fprintf('Measured delay (intern): %d\n',mDelay);
-    fprintf('Measured delay (extern): %d\n',round(dt));
+    fprintf('Measured delay (extern): %d\n',mDelay2);
 catch err
    save STLCheck_lasterr 
    throw(err)

@@ -132,12 +132,10 @@ classdef RTData < handle
 %% Slower Than Light Technology
 
             STLDocking(obj);
-        obj=STLCargoManagement(obj,mode);
     [t1,t2]=STLReceive(obj,Marker,time_init,nbSensors,nbControls,Tend); 
         obj=STLGrocery(obj,t,s,c,m); %% puts data in the RTData object
-            STLCheck(obj,mode)
-
-%% Interface
+[a,b,c,d,e]=STLCheck(obj)
+            
         % Serial communication
         function obj=openPort(obj)
             obj.Hardware.openPort;
