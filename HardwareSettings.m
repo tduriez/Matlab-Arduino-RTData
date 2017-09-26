@@ -105,6 +105,9 @@ function setGUItoValue(handles)
     
     
 function getSerials(handles)
+    if ~isempty(instrfindall)
+        fclose(instrfindall);
+    end
     serialInfo = instrhwinfo('serial');
     set(handles.PortMenu,'String',[{'Undefined'}; serialInfo.AvailableSerialPorts],'Value',1);
 

@@ -126,7 +126,7 @@ function display_folder(handles)
     set(handles.MatList,'String',theString,'Value',1);
           
 function displayHardware(handles)
-    if isfield(handles.output.Hardware,'Port')
+    if ~isempty(handles.output.Hardware.Port)
         disptxt{1}=sprintf('Port: %s',handles.output.Hardware.Port);
     else
         set(handles.ConfigList,'String','Not configured','Value',1);
@@ -432,7 +432,7 @@ function CheckBttn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 [~,~,~,actual_delay,~]=handles.output.STLCheck;
-set(handles.CheckTxt,'String',sprintf('%f ms (%.2f Hz)',actual_delay,1000000/actual_delay));
+set(handles.CheckTxt,'String',sprintf('%d ms (%.2f Hz)',actual_delay,1000000/actual_delay));
 
 
 % --- Executes on button press in SetBttn.
