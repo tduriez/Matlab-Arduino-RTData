@@ -224,9 +224,7 @@ void loop() {
           SerialUSB.print(" ");
           SerialUSB.println(mDelay);
           delay(10);
-        }
-
-        
+        }     
        }
     }
 

@@ -73,8 +73,6 @@ classdef RTData < handle
         Action=[]      % Where action will be kept 
         Time=[]        % Where time will be kept
         AcqDate        % Burnt once acquisition is done
-        
-        
     end
     
 %% Hidden, unaccessible magic properties (a.k.a. dirty tweaks)    
@@ -83,7 +81,6 @@ classdef RTData < handle
         iMeasurements=0    % used while acquiring         
         graphics           % Structure with graphic handles and preprocessed info
         acquired=0         % Each RTData object can only be acquired once
-lass with listener
     end
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

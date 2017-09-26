@@ -72,6 +72,7 @@ classdef RTDataHardware < handle
                 fopen(obj.Serial);
                 fprintf('Serial port %s open\n',obj.Port)
                 obj.disp('serial');
+                obj.sendParams;
             else
                 fprintf('Serial port %s already open\n',obj.Port)
             end  
@@ -105,6 +106,19 @@ classdef RTDataHardware < handle
                     fprintf('Serial port %s closed\n',obj.Port)
                 end
             end
+        end
+        
+        function sendParams(obj)
+            Settings_sep=[repmat('-',[1 72]) '\n']; 
+            obj.openPort;
+            fprintf(Settings_sep);
+            fprintf('Arduino internal settings:\n')
+            fprintf('\n')
+            fprintf('Channels:    %d\n',obj.Channels);
+            fprintf('Averaging:   %d\n',obj.nMeasures);
+            fprintf('Acq period:  %d\n',obj.Delay);
+            fprintf(Settings_sep);
+            fprintf(obj.Serial,sprintf('N %06d %06d %06d',obj.Channels,obj.nMeasures,obj.Delay));
         end
         
         %% Destructor
@@ -177,18 +191,9 @@ classdef RTDataHardware < handle
             fprintf(Settings_sep);
         end
         
-        function CB_OnBoard(~,eventData)
-            Settings_sep=[repmat('-',[1 72]) '\n']; 
+        function CB_OnBoard(~,eventData) 
             obj=eventData.AffectedObject;
-            obj.openPort;
-            fprintf(Settings_sep);
-            fprintf('Arduino internal settings:\n')
-            fprintf('\n')
-            fprintf('Channels:    %d\n',obj.Channels);
-            fprintf('Averaging:   %d\n',obj.nMeasures);
-            fprintf('Acq period:  %d\n',obj.Delay);
-            fprintf(Settings_sep);
-            fprintf(obj.Serial,sprintf('N %06d %06d %06d',obj.Channels,obj.nMeasures,obj.Delay));
+            obj.sendParams;
         end
         
         function CB_PortSet(~,eventData)

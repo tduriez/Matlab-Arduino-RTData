@@ -1,6 +1,9 @@
 function STLDocking(obj)
-fprintf('Achieving security measures to ensure safe Slower Than Light travel of your data\n')
-    flushinput(obj.Hardware.Serial)
+fprintf('Enforcing security measures to ensure safe Slower Than Light travel of your data\n')
+%    obj.closePort;
+    obj.openPort;
+    flushinput(obj.Hardware.Serial);
+    flushoutput(obj.Hardware.Serial);
     while get(obj.Hardware.Serial,'BytesAvailable')<150
         pause(0.001)
     end
@@ -12,4 +15,5 @@ fprintf('Achieving security measures to ensure safe Slower Than Light travel of 
         end
         dummy(i)=fread(obj.Hardware.Serial,1,'uint8');
     end
+     
 end

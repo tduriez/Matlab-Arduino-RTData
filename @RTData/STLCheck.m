@@ -1,4 +1,5 @@
 function STLCheck(obj,mode)
+try
     if nargin<2
         mode='normal';
     end
@@ -45,4 +46,8 @@ function STLCheck(obj,mode)
     fprintf('Set delay:      %d\n',SetDelay);
     fprintf('Measured delay (intern): %d\n',mDelay);
     fprintf('Measured delay (extern): %d\n',round(dt));
+catch err
+   save STLCheck_lasterr 
+   throw(err)
+end
 end
