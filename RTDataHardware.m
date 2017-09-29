@@ -1,4 +1,4 @@
-classdef RTDataHardware < handle
+classdef RTDataHardware < matlab.mixin.Copyable
     
     %% TODO
     
@@ -67,6 +67,10 @@ classdef RTDataHardware < handle
             end
             if ~isa(obj.Serial,'serial')
                 obj.createSerial;
+            else
+                if isempty(obj.Serial)
+                    obj.createSerial;
+                end
             end
             if strcmpi(get(obj.Serial,'Status'),'closed')
                 fopen(obj.Serial);
@@ -132,16 +136,12 @@ classdef RTDataHardware < handle
             Settings_sep=[repmat('-',[1 72]) '\n']; 
             obj.openPort;
             fprintf(Settings_sep);
-            fprintf('Arduino internal settings:\n')
-            fprintf('\n')
-            fprintf('Channels:    %d\n',obj.Channels);
-            fprintf('Averaging:   %d\n',obj.nMeasures);
-            fprintf('Acq period:  %d\n',obj.Delay);
-            fprintf(Settings_sep);
-            fprintf('Sending Cargo: ');
+            fprintf('Sending Cargo to Arduino via STL: ');
             fprintf('%d ',STLCargo);
             fprintf('\n');
-            fwrite(obj.Serial,STLCargo,'uint8');
+            flushinput(obj.Serial);
+            flushoutput(obj.Serial);
+            fwrite(obj.Serial,STLCargo,'uint8');            
         end
         
         %% Destructor
@@ -214,24 +214,31 @@ classdef RTDataHardware < handle
             fprintf(Settings_sep);
         end
         
-        function CB_OnBoard(~,eventData) 
+        function CB_OnBoard(propChanged,eventData) 
+            Settings_sep=[repmat('-',[1 72]) '\n']; 
+            fprintf(Settings_sep);
             obj=eventData.AffectedObject;
+            switch propChanged.Name
+                case 'Delay'
+                    fprintf('New loop delay: %d us.\n',obj.Delay);
+                case 'Channels'
+                    fprintf('New number of input channels: %d.\n',obj.Channels);
+               case 'nMeasures'
+                    fprintf('New number of averaging measures: %d.\n',obj.nMeasures);
+            end
+                    
             obj.sendParams;
         end
         
         function CB_PortSet(~,eventData)
             obj=eventData.AffectedObject;
-            if isa(obj.Serial,'serial');
+            if isa(obj.Serial,'serial')
                 obj.closePort(1);
                 delete(obj.Serial);
             end
             obj.createSerial;
         end
             
-            
-        
-    end
-    
-    
-    
-    end
+     end
+
+end

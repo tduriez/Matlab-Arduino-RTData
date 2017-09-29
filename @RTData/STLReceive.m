@@ -34,9 +34,9 @@ for nba=1:nbacquis
     if any(a(end-3:end)~=[255 255 13 10]')
         fprintf('%d ',a');fprintf('\n');
     end
-    % Include measurement in the RTDataObject. Also triggers AutoPlot
+    % Include measurement in the RTDataObject. Also triggers STLPlot
     % if display is open.
-    obj.STLGrocery((TheTime-time_init)/10^6,Sensors,Control,Marker);
+    obj.STLStorage((TheTime-time_init)/10^6,Sensors,Control,Marker);
 end
 
 if nargin==6
@@ -49,7 +49,7 @@ end
 end
 
 function [control,TheBytes]=demultiplexbyte(TheBytes,nbControl)
-% 4 controls con be coded on each sensors.
+% 4 controls can be coded on each sensors.
 Sensorbyte=[5; 5; 5; 5];
 Controlbit=[8; 7; 6; 5];
 control=(TheBytes(Sensorbyte)-mod(TheBytes(Sensorbyte),2.^(Controlbit-1)))./2.^(Controlbit-1);

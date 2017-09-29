@@ -27,7 +27,9 @@ function obj=stop(obj)
 %    along with this program.  If not, see <http://www.gnu.org/licenses/>.
     
     obj.openPort;
-    fprintf(obj.Hardware.Serial,'K'); % K is the Kill signal for the Arduino.
+    KillCargo=zeros(1,11);
+    KillCargo(1)=2*16;
+    fwrite(obj.Hardware.Serial,KillCargo,'uint8');
     
 end
     

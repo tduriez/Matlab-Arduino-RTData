@@ -1,3 +1,13 @@
+#define DEBUG // uncomment this line to get debug messages on Programming Port
+
+#ifdef DEBUG
+ #define DEBUG_PRINTLN(x)  Serial.println (x)
+ #define DEBUG_PRINT(x)  Serial.print (x)
+#else
+ #define DEBUG_PRINTLN(x)
+  #define DEBUG_PRINT(x)  
+#endif
+
 /* *****************
    *** VARIABLES ***
    ***************** */
@@ -6,7 +16,8 @@ int i = 0;
 int j= 0;
 int Pins[12];
 int Trig = 2;
-int TheDelay = 1;
+int TheDelay = 1000;
+int SetDelay = 1000;
 int nMeasures = 1;
 int nSensors = 12;
 unsigned long InitTime;
@@ -169,6 +180,7 @@ void setup() {
   ActTimeOut[0]=0;
   analogReadResolution(12);
   SerialUSB.begin(9600);  //speed of this one doesn't mean anything
+  Serial.begin(9600); 
   pinMode(ActionPin, OUTPUT);
   while (SerialUSB.available()>0) {
       byte test[0];
@@ -202,11 +214,20 @@ void loop() {
 
     /* Manage messages from outside */
     if (SerialUSB.available() > 0) {
+      DEBUG_PRINTLN("Got something on the port");
       unsigned long Parameters[6];
       int mode;
       mode= SlowerThanLightReader(Parameters);
       if (mode==15) { // Query mode
+        DEBUG_PRINTLN("It's Query mode !");
+        
+        #ifdef DEBUG
+        int N=0;
+        #endif
         while (SerialUSB.available() < 1) {
+          #ifdef DEBUG
+            N++;
+          #endif
           SerialUSB.print(nSensors);
           SerialUSB.print(" ");
           SerialUSB.print(nMeasures);
@@ -215,9 +236,18 @@ void loop() {
           SerialUSB.print(" ");
           SerialUSB.println(mDelay);
           delay(10);
-        } 
+        }
+        DEBUG_PRINT("Info sent ");
+        DEBUG_PRINT(N);
+        DEBUG_PRINT(" times.");
+        while (SerialUSB.available() > 0) {
+          char junk[1];
+          SerialUSB.readBytes(junk,1);
+        }
+        DEBUG_PRINTLN("Back to normal mode"); 
       }
       if (mode==1) { // Config mode
+        DEBUG_PRINTLN("It's Config mode !");
         nSensors       = Parameters[0];
         nMeasures      = Parameters[1];
         TheDelay       = Parameters[2];
@@ -228,8 +258,31 @@ void loop() {
           ActTime[0]=millis();
           ActTimeOut[0]=millis()+ActParams[0];    
         }
+        DEBUG_PRINT("n sensors: ");
+        DEBUG_PRINTLN(nSensors);
+        DEBUG_PRINT("nMeasures: ");
+        DEBUG_PRINTLN(nMeasures);
+        DEBUG_PRINT("delay: ");
+        DEBUG_PRINTLN(TheDelay);
+        DEBUG_PRINT("Pulse Width: ");
+        DEBUG_PRINTLN(ActParams[0]);
+        DEBUG_PRINT("Reps: ");
+        DEBUG_PRINTLN(ActParams[1]);
+        DEBUG_PRINT("Control Delay: ");
+        DEBUG_PRINTLN(ActParams[2]);
+        DEBUG_PRINT("Control Char: ");
+        DEBUG_PRINTLN(mode);
       }
+      if (mode==2) { // Kill Mode
+        ActTime[0]=4294967295;
+        ActTimeOut[0]=0;
+        DEBUG_PRINTLN("Actuation killed!!!");
+      }
+      
+      DEBUG_PRINTLN("Back to sensing");
     }
+
+    
 
     /* Enforce loop period */
     while (micros()-Last_loop<TheDelay) {

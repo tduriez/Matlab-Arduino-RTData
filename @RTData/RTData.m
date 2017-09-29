@@ -1,4 +1,4 @@
-classdef RTData < handle
+classdef RTData < matlab.mixin.Copyable
 %RTData Real-Time Data class.
 %
 %   Matlab class made for the acquisition and display of analog signals
@@ -78,6 +78,7 @@ classdef RTData < handle
 %% Hidden, unaccessible magic properties (a.k.a. dirty tweaks)    
     properties (Hidden, SetAccess=private)
         nBuffer=1000*60*10 % Provision for 10 minutes at 1kHz
+        BufferSize=0       % Keeps track of current storage capacity
         iMeasurements=0    % used while acquiring         
         graphics           % Structure with graphic handles and preprocessed info
         acquired=0         % Each RTData object can only be acquired once
@@ -128,13 +129,16 @@ classdef RTData < handle
            
     end
     
+
+    
     
 %% Slower Than Light Technology
 
             STLDocking(obj);
     [t1,t2]=STLReceive(obj,Marker,time_init,nbSensors,nbControls,Tend); 
-        obj=STLGrocery(obj,t,s,c,m); %% puts data in the RTData object
+        obj=STLStorage(obj,t,s,c,m); %% puts data in the RTData object
 [a,b,c,d,e]=STLCheck(obj)
+            STLplot(obj,Time,Data,Control)
             
         % Serial communication
         function obj=openPort(obj)
@@ -147,11 +151,33 @@ classdef RTData < handle
         
 %% Functionnalities
 
-        AutoPlot(obj,Time,Data,Control)
+        
         obj  = acquire(obj,acquisition_time)     
         obj  = control(obj)
         obj  = stop(obj)
                save(obj)
         obj  = makeLiveInterface(obj,nbfigs,TheFig)
-    end    
+    end
+    
+    %% Copy overload
+methods (Access = protected)
+      function cp = copyElement(obj)
+         % Shallow copy object
+         cp = copyElement@matlab.mixin.Copyable(obj);
+         cp.acquired=0;
+         cp.Data=[];
+         cp.Time=[];
+         cp.Action=[];
+         cp.AcqDate=[];
+         cp.BufferSize=0;
+         cp.iMeasurements=0;
+         cp.graphics.axes_handles=[];
+         cp.graphics.plot_handles=[];
+         cp.graphics.text_handles=[];
+         cp.graphics.iFrame=[];
+         cp.graphics.nStep=[];
+         cp.graphics.dt=[];
+         cp.graphics.nRefresh=[];
+      end
+end
 end

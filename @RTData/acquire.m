@@ -84,7 +84,7 @@ if ~obj.acquired
             % or acquiring up to prescribed time
             [time_init]=obj.STLReceive(time_init,Marker,nbSensors,nbControls,Tend);
         end
-        obj.STLGrocery;
+        obj.STLStorage;
     catch err
         fprintf('\n%s\n\n',err.message);
         for i=1:length(err.stack)
@@ -96,6 +96,7 @@ if ~obj.acquired
     obj.acquired=1;
     obj.save;
     obj.closePort;
+    fprintf('End of acquisition\n');
 else
     fprintf('Data already collected for this object\n')
 end

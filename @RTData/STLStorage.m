@@ -1,4 +1,4 @@
-function obj=STLGrocery(obj,time,sensors,control,Marker)
+function obj=STLStorage(obj,time,sensors,control,Marker)
 persistent Data Control Time Graph Trigger
 
 if nargin==1
@@ -23,8 +23,8 @@ end
 
 obj.iMeasurements=obj.iMeasurements+1;
 i=obj.iMeasurements;
-if i>obj.nBuffer || isempty(Time)
-    fprintf('Grocery initialized\n');
+if i>obj.BufferSize || isempty(Time)
+    fprintf('Making room in STL Storage\n');
     if i>=2
         obj.graphics.dt=Time(2)-Time(1);
     else
@@ -32,14 +32,14 @@ if i>obj.nBuffer || isempty(Time)
     end
     
     obj.graphics.nRefresh=round(1/(obj.fRefresh*obj.graphics.dt));
-    
+    obj.BufferSize=obj.BufferSize+obj.nBuffer;
     Time=[Time; (zeros(obj.nBuffer,1))];
     Graph=mod(1:length(Time),obj.graphics.nRefresh)==0;
     Control=[Control; (zeros(obj.nBuffer,numel(control)))];
     Data=[Data; (zeros(obj.nBuffer,numel(sensors)))];
     Trigger=[Trigger; (zeros(obj.nBuffer,1))];
     if isfield(obj.Control,'Trigger')
-        if (length(Time)-1)*obj.graphics.dt>obj.Control.Trigger;
+        if (length(Time)-1)*obj.graphics.dt>obj.Control.Trigger
             [~,idx]=min(abs((length(Time)-1)*obj.graphics.dt-obj.Control.Trigger));
             Trigger(idx)=1;
         end
@@ -50,7 +50,7 @@ Data(i,:)=sensors;
 Control(i,:)=control;
 Time(i)=time;
 if Graph(i) && ~noplot
-    AutoPlot(obj,Time,Data,Control);
+    STLPlot(obj,Time,Data,Control);
 end
 
 if Trigger(i)

@@ -1,8 +1,7 @@
-function AutoPlot(h,Time,Data,Control)
-%AutoPlot   Callback function of the RTData class. Called every-time new
-%           data is available
+function STLPlot(h,Time,Data,Control)
+%STLPLOT   displays RT graphics
 %
-%   AUTOPLOT decides if the real-time display should be updated and acts
+%   STLPLOT decides if the real-time display should be updated and acts
 %   accordingly. See code for details.
 %
 % See also: RTData
@@ -24,13 +23,9 @@ function AutoPlot(h,Time,Data,Control)
 %    You should have received a copy of the GNU General Public License
 %    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-%  if ~isempty(h.graphics.plot_handles) % if display is not closed.
-
-%% determining the refresh period in number of measurements.
-
 
 %% Refreshing
-%if mod(h.iMeasurements,h.graphics.nRefresh)==0
+
     if isempty(h.tFrame)         % if no time frame is specified
         DisplayTime=Time(1:h.iMeasurements);      % draw all data always
         DisplayData=Data(1:h.iMeasurements,:);
@@ -64,18 +59,14 @@ try
         end
         drawnow limitrate
 catch err
-    if strcmp(err.message,'Invalid or deleted object.');
+    if strcmp(err.message,'Invalid or deleted object.')
         fprintf('Real-Time Display closed\n');
     else
         fprintf('%s\n',err.message);
-        for i=1:length(err.stack);
+        for i=1:length(err.stack)
             disp(err.stack(i));
         end
     end
 end
     
-    end
-    
-    
-%end
-%end
+end

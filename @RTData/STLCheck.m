@@ -6,18 +6,27 @@ function [nSensors,nMeasures,SetDelay,mDelay,mDelay2]=STLCheck(obj,mode)
     sep=[repmat('-',[1 70]) '\n'];
     obj.openPort;
     
-    fwrite(obj.Hardware.Serial,repmat(255,[1 11]));
+    fwrite(obj.Hardware.Serial,repmat(255,[1 11])); %% 
     flushinput(obj.Hardware.Serial);
-    pause(0.1);
-    flushinput(obj.Hardware.Serial);
-    for i=1:5
-    a=fscanf(obj.Hardware.Serial);
+ %   pause(0.1);
+ %   flushinput(obj.Hardware.Serial);
+    a=[1 2];
+    idx=[];
+    while ~((length(idx)==3) && all(a(end-1:end)==[13 10]))
+        a=fscanf(obj.Hardware.Serial);
+        if strcmpi(mode,'debug')
+            fprintf('From Arduino (Query): %s\n',a);
+        end
+        if numel(a)<2
+            a=[1 2];
+        end
+        idx=strfind(a,' ');
     end
     if strcmpi(mode,'debug')
         fprintf('From Arduino (Query): %s\n',a);
     end
-    idx=strfind(a,' ');
-    nSensors=str2double(a(1:idx(1)-1));
+   
+nSensors=str2double(a(1:idx(1)-1));
     nMeasures=str2double(a(idx(1)+1:idx(2)-1));
     SetDelay=str2double(a(idx(2)+1:idx(3)-1));
     mDelay=str2double(a(idx(3)+1:end));

@@ -303,21 +303,10 @@ function NewBttn_Callback(hObject, eventdata, handles)
 % hObject    handle to NewBttn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-Control=handles.output.Control;
-Hardware=handles.output.Hardware;
-handles.output=RTData;
-handles.output.Hardware.Port=Hardware.Port;
-list_properties=fieldnames(Hardware);
-for k=1:numel(list_properties);
-   handles.output.Hardware.(list_properties{k})=Hardware.(list_properties{k});
-   %pause(1);
-end
-
-handles.output.Control=Control;
+new_RTData=copy(handles.output);
+handles.output=new_RTData;
 guidata(hObject,handles);
-SetValueToGUI(handles);
-
-handles.output.STLCheck;
+%handles.output.STLCheck;
 activate(handles,'Display','on');
 activate(handles,'Control','on');
 activate(handles,'Configuration','on');
