@@ -72,6 +72,11 @@ classdef RTDataHardware < matlab.mixin.Copyable
                     obj.createSerial;
                 end
             end
+            
+            if ~isvalid(obj.Serial)
+                obj.createSerial;
+            end
+            
             if strcmpi(get(obj.Serial,'Status'),'closed')
                 fopen(obj.Serial);
                 fprintf('Serial port %s open\n',obj.Port)
@@ -100,6 +105,8 @@ classdef RTDataHardware < matlab.mixin.Copyable
                     error('Can''t close serial port: serial object not created.');
                 end
             end
+            
+            if isvalid(obj.Serial)
             if strcmpi(get(obj.Serial,'Status'),'closed')
                 if ~nomsg
                     fprintf('Serial port %s already closed\n',obj.Port)
@@ -109,6 +116,7 @@ classdef RTDataHardware < matlab.mixin.Copyable
                 if ~nomsg
                     fprintf('Serial port %s closed\n',obj.Port)
                 end
+            end
             end
         end
         
