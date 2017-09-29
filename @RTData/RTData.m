@@ -73,6 +73,7 @@ classdef RTData < matlab.mixin.Copyable
         Action=[]      % Where action will be kept 
         Time=[]        % Where time will be kept
         AcqDate        % Burnt once acquisition is done
+        Version=2.0    
     end
     
 %% Hidden, unaccessible magic properties (a.k.a. dirty tweaks)    

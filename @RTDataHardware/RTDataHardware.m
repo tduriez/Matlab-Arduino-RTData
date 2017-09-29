@@ -7,7 +7,7 @@ classdef RTDataHardware < matlab.mixin.Copyable
 %                                                                         %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    properties (SetObservable)
+    properties (SetObservable, AbortSet)
         Arduino='due'
         Delay=1000
         Port
