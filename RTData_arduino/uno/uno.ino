@@ -1,3 +1,12 @@
+#define DEBUG // uncomment this line to get debug messages on Programming Port
+
+#ifdef DEBUG
+ #define DEBUG_PRINTLN(x)  Serial.println (x)
+ #define DEBUG_PRINT(x)  Serial.print (x)
+#else
+ #define DEBUG_PRINTLN(x)
+  #define DEBUG_PRINT(x)  
+#endif
 
 /* *****************
    *** VARIABLES ***
@@ -7,12 +16,13 @@ int i = 0;
 int j= 0;
 int Pins[6];
 int Trig = 2;
-int TheDelay = 1;
+int TheDelay = 1000;
+int SetDelay = 1000;
 int nMeasures = 1;
 int nSensors = 6;
 unsigned long InitTime;
 unsigned long Last_loop, Previous_loop, mDelay;
-int Sensors[12];
+int Sensors[6];
 int Control;
 unsigned long ActTime[1];
 unsigned long ActTimeOut[1];
@@ -71,8 +81,7 @@ void SlowerThanLightWriter(int Sensors[], int Control, int nSensors) {
     thetime=micros();
     for (iBit=0;iBit<4;iBit++) {
       thebuffer[iChar]=(thetime >> trans[iBit]) & 0xFF;
-      iChar++;
-      
+      iChar++;     
     }
     for (jSensors=0;jSensors<nSensors;jSensors++) {
       for (iBit=2;iBit<4;iBit++) {
@@ -84,11 +93,43 @@ void SlowerThanLightWriter(int Sensors[], int Control, int nSensors) {
         thebuffer[iChar]=255;
         iChar++;
     }
-
     thebuffer[4]=thebuffer[4]+128*Control;  // Using bit 16 of 2bytes from the 12bits first sensor
-    
     Serial.write(thebuffer,iChar);
     Serial.println("");
+}
+
+int SlowerThanLightReader(unsigned long params[]) {
+  /* SlowerThanLigthReader gets parameters from the external client.
+   *  
+   *  The data structure is the following
+   *  Byte 1:       : Bits 5,6,7 and 8 code for number of sensors. -------> params[0]
+   *                : Bits 1,2,3,4 are reserved for control characters ---> output
+   *  Byte 2:       : nMeasures-1 ([0 255] -> [1 256])             -------> params[1]
+   *  Bytes 3,4,5,6 : loop delay in microseconds (unsigned long, 32bits) -> params[2]
+   *  Bytes 7,8     : Pulse Width (ms) (max 65535)                 -------> params[3]
+   *  Byte 9        : repetitions-1 (max 256)                      -------> params[4]
+   *  Butes 10,11   : Control delay (ms) (max 65535)               -------> params[5]
+   */
+  if (Serial.available()>10) { /* Information comes in packets of 11 */
+    int ControlChar;
+    byte fromBuffer[11];  
+    Serial.readBytes(fromBuffer,11);
+    ControlChar=fromBuffer[0] >> 4;
+    params[0]=fromBuffer[0]-ControlChar*16;
+    params[1]=fromBuffer[1];
+    params[2]=fromBuffer[2]*16777216 + fromBuffer[3]*65536+ fromBuffer[4]*256+ fromBuffer[5];
+    params[3]=fromBuffer[6]*256+fromBuffer[7];
+    params[4]=fromBuffer[8];
+    params[5]=fromBuffer[9]*256+fromBuffer[10];
+    while (Serial.available()>0) { /* Empty the rest */
+      byte test[0];
+      Serial.readBytes(test,1);
+    }
+    return ControlChar;
+  } 
+  else {
+    return 0;
+  }
 }
 
 int control(unsigned long ActTime[],unsigned long ActTimeOut[],int ActParams[]) {
@@ -131,8 +172,12 @@ void setup() {
   Pins[5] = 28;
   ActTime[0]=4294967295;
   ActTimeOut[0]=0;
-  Serial.begin(230400);  //speed of this one doesn't mean anything
+  Serial.begin(230400);  
   pinMode(ActionPin, OUTPUT);
+  while (Serial.available()>0) {
+      byte test[0];
+      Serial.readBytes(test,1);
+  }
 }
 
 /* *****************
@@ -165,51 +210,20 @@ void loop() {
 
     /* Manage messages from outside */
     if (Serial.available() > 0) {
-      int bufferCount;
-      char FromSerialBuffer[23];
-      char Part1[7];
-      char Part2[7];
-      char Part3[7];
-      bufferCount = ReadLine(FromSerialBuffer);
-      for (i=0;i<6;i++) {
-          Part1[i]=FromSerialBuffer[i+2];
-        }
-        for (i=0;i<6;i++) {
-          Part2[i]=FromSerialBuffer[i+9];
-        }
-        for (i=0;i<6;i++) {
-          Part3[i]=FromSerialBuffer[i+16];
-        }
-      if (FromSerialBuffer[0]==78) { // 78 is N of New parameters
-        nSensors=atol(Part1); 
-        nMeasures=atol(Part2); 
-        TheDelay=atol(Part3);
-        /*Serial.println("Changing parameters");    
-        Serial.print("New nSensors: ");
-        Serial.println(nSensors);
-        Serial.print("New nMeasures: ");
-        Serial.println(nMeasures);
-        Serial.print("New Delay: ");
-        Serial.println(TheDelay);*/ 
-      }
-      if (FromSerialBuffer[0]==65) { // 65 is A of Action
-        ActParams[0]=atol(Part1);
-        ActParams[1]=atol(Part2);
-        ActParams[2]=atol(Part3); 
-        ActTime[0]=millis();
-        ActTimeOut[0]=millis()+ActParams[0];
-         /*Serial.println("New staged control sequence");
-        Serial.print("Pulse Width: ");
-        Serial.println(ActParams[0]);
-        Serial.print("Repetitions: ");
-        Serial.println(ActParams[1]);
-        Serial.print("Delay: ");
-        Serial.println(ActParams[2]);*/
-      }
-       if (FromSerialBuffer[0]==81) { // 81 is Q of Query
-        // Query mode stops the loop, sends one line and waits for other Query to restart.
-        // Can effectively be used as a pause 
+      DEBUG_PRINTLN("Got something on the port");
+      unsigned long Parameters[6];
+      int mode;
+      mode= SlowerThanLightReader(Parameters);
+      if (mode==15) { // Query mode
+        DEBUG_PRINTLN("It's Query mode !");
+        
+        #ifdef DEBUG
+        int N=0;
+        #endif
         while (Serial.available() < 1) {
+          #ifdef DEBUG
+            N++;
+          #endif
           Serial.print(nSensors);
           Serial.print(" ");
           Serial.print(nMeasures);
@@ -219,10 +233,52 @@ void loop() {
           Serial.println(mDelay);
           delay(10);
         }
-
-        
-       }
+        DEBUG_PRINT("Info sent ");
+        DEBUG_PRINT(N);
+        DEBUG_PRINT(" times.");
+        while (Serial.available() > 0) {
+          char junk[1];
+          Serial.readBytes(junk,1);
+        }
+        DEBUG_PRINTLN("Back to normal mode"); 
+      }
+      if (mode==1) { // Config mode
+        DEBUG_PRINTLN("It's Config mode !");
+        nSensors       = Parameters[0];
+        nMeasures      = Parameters[1];
+        TheDelay       = Parameters[2];
+        if (Parameters[3]>0) {
+          ActParams[0] = Parameters[3];
+          ActParams[1] = Parameters[4];
+          ActParams[2] = Parameters[5]; 
+          ActTime[0]=millis();
+          ActTimeOut[0]=millis()+ActParams[0];    
+        }
+        DEBUG_PRINT("n sensors: ");
+        DEBUG_PRINTLN(nSensors);
+        DEBUG_PRINT("nMeasures: ");
+        DEBUG_PRINTLN(nMeasures);
+        DEBUG_PRINT("delay: ");
+        DEBUG_PRINTLN(TheDelay);
+        DEBUG_PRINT("Pulse Width: ");
+        DEBUG_PRINTLN(ActParams[0]);
+        DEBUG_PRINT("Reps: ");
+        DEBUG_PRINTLN(ActParams[1]);
+        DEBUG_PRINT("Control Delay: ");
+        DEBUG_PRINTLN(ActParams[2]);
+        DEBUG_PRINT("Control Char: ");
+        DEBUG_PRINTLN(mode);
+      }
+      if (mode==2) { // Kill Mode
+        ActTime[0]=4294967295;
+        ActTimeOut[0]=0;
+        DEBUG_PRINTLN("Actuation killed!!!");
+      }
+      
+      DEBUG_PRINTLN("Back to sensing");
     }
+
+    
 
     /* Enforce loop period */
     while (micros()-Last_loop<TheDelay) {
@@ -231,8 +287,4 @@ void loop() {
      Previous_loop=Last_loop;
      Last_loop=micros();
      mDelay=Last_loop-Previous_loop;
-
-
-
-  
 }
