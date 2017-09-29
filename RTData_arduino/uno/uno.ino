@@ -108,7 +108,7 @@ int SlowerThanLightReader(unsigned long params[]) {
    *  Bytes 3,4,5,6 : loop delay in microseconds (unsigned long, 32bits) -> params[2]
    *  Bytes 7,8     : Pulse Width (ms) (max 65535)                 -------> params[3]
    *  Byte 9        : repetitions-1 (max 256)                      -------> params[4]
-   *  Butes 10,11   : Control delay (ms) (max 65535)               -------> params[5]
+   *  Bytes 10,11   : Control delay (ms) (max 65535)               -------> params[5]
    */
   if (Serial.available()>10) { /* Information comes in packets of 11 */
     int ControlChar;

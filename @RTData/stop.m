@@ -2,10 +2,8 @@ function obj=stop(obj)
 %STOP       method of the RTData class. Stops any actuation in the arduino
 %           board.
 %
-%   RTDataObject.stop immediately sends the 'K' signal to the arduino
-%   board. If the arduino is loaded with the original script provided with
-%   this toolbox, it corresponds to the command to stop any actuation. The
-%   script still continues to send sensors data to the serial port.
+%   RTDataObject.stop immediately sends the kill signal to the arduino
+%   board.
 %
 %   See also: RTData
 %   Copyright (c) 2017, Thomas Duriez (Distributed under GPLv3)

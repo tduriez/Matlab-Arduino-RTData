@@ -15,13 +15,13 @@ classdef RTData < matlab.mixin.Copyable
 %   Name     -  Experiment name.
 %
 %   Control  - Control type and parameters.
-%   Hardware - Hardware configuration.
+%   Hardware - Hardware configuration (RTDataHardware Object).
 %
 %   RTData methods:
 %   acquire        - starts acquisition.
 %   control        - send control instruction contained in Control.
 %   stop           - stops any actuation.
-%   check_arduino  - returns the actual loop delay of the arduino
+%   STLCheck       - returns the actual loop delay of the arduino
 %
 %   openPort      - opens serial port specified in Hardware.Port.
 %   closePort     - closes and delete serial port object.
@@ -130,14 +130,12 @@ classdef RTData < matlab.mixin.Copyable
            
     end
     
-
-    
     
 %% Slower Than Light Technology
 
             STLDocking(obj);
     [t1,t2]=STLReceive(obj,Marker,time_init,nbSensors,nbControls,Tend); 
-        obj=STLStorage(obj,t,s,c,m); %% puts data in the RTData object
+        obj=STLStorage(obj,t,s,c,m);
 [a,b,c,d,e]=STLCheck(obj)
             STLplot(obj,Time,Data,Control)
             
