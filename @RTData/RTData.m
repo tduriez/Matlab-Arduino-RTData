@@ -1,4 +1,4 @@
-classdef RTData < handle
+classdef RTData < matlab.mixin.Copyable
 %RTData Real-Time Data class.
 %
 %   Matlab class made for the acquisition and display of analog signals
@@ -15,17 +15,17 @@ classdef RTData < handle
 %   Name     -  Experiment name.
 %
 %   Control  - Control type and parameters.
-%   Hardware - Hardware configuration.
+%   Hardware - Hardware configuration (RTDataHardware Object).
 %
 %   RTData methods:
 %   acquire        - starts acquisition.
 %   control        - send control instruction contained in Control.
 %   stop           - stops any actuation.
-%   check_arduino  - returns the actual loop delay of the arduino
+%   STLCheck       - returns the actual loop delay of the arduino
 %
-%   open_port      - opens serial port specified in Hardware.Port.
-%   close_port     - closes and delete serial port object.
-%   addmeasure     - adds one measurement point.
+%   openPort      - opens serial port specified in Hardware.Port.
+%   closePort     - closes and delete serial port object.
+%
 %
 %   See also: RTDataGUI
 %   Copyright (c) 2017, Thomas Duriez (Distributed under GPLv3)
@@ -63,31 +63,26 @@ classdef RTData < handle
         Name='test'    % Experiment name
         Control        % Control type and parameters
         Save=0         % Save switch (0> no 1>.mat 2>mat+txt -2> txt
+        Hardware       % Structure containing the hardware config.  
     end
     
-    
-    properties (SetObservable)
-        Hardware       % Structure containing the hardware config.         %%TODO Maybe should be own super-serial class
-    end
 
 %% Protected properties
-    properties (SetObservable, SetAccess=private)
+    properties (SetAccess=private)
         Data=[]        % Where data will be kept
         Action=[]      % Where action will be kept 
         Time=[]        % Where time will be kept
         AcqDate        % Burnt once acquisition is done
-        
-        
+        Version=2.0    
     end
     
 %% Hidden, unaccessible magic properties (a.k.a. dirty tweaks)    
     properties (Hidden, SetAccess=private)
-        graphics        % Structure with graphic handles and preprocessed info
-        acquired=0      % Each RTData object can only be acquired once
-        arduino='due'   % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
-        delay=200       % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
-        Channels=2      % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
-        nMeasures=100   % Used to keep track of harware change             %%TODO will disappear once Hardware is a class with listener
+        nBuffer=1000*60*10 % Provision for 10 minutes at 1kHz
+        BufferSize=0       % Keeps track of current storage capacity
+        iMeasurements=0    % used while acquiring         
+        graphics           % Structure with graphic handles and preprocessed info
+        acquired=0         % Each RTData object can only be acquired once
     end
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -106,62 +101,82 @@ classdef RTData < handle
            obj.graphics.nStep=[];
            obj.graphics.dt=[];
            obj.graphics.nRefresh=[];
-           
-           obj.Hardware.arduino='due';
-           obj.Hardware.Bits=12;
-           obj.Hardware.Volts=3.3;
-           obj.Hardware.Channels=2;
-           obj.Hardware.nMeasures=100;
-           obj.Hardware.delay=200;
-           addlistener(obj,'Time','PostSet',@RTData.AutoPlot);
-           addlistener(obj,'Hardware','PostSet',@RTData.HardwareChange);
+           obj.Hardware=RTDataHardware;
         end
 
-%% Other methods
-        function obj=addmeasure(obj,t,sensors,control)
-            obj.Data(end+1,:)=sensors(:);
-            obj.Action(end+1,:)=control(:);
-            obj.Time(end+1,1)=t;
+%% Destructor
+    function obj=delete(obj)
+        delete(obj.Hardware);
+    end
+        
+%% Display overload
+    function disp(obj)
+        fprintf('RTData object:\n\n');
+        fprintf(' -name: %s\n',obj.Name);
+        if obj.acquired
+            fprintf(' -Acquired:\n');
+            fprintf('   -%d channels\n',size(obj.Data,2));
+            fprintf('   -%d acquisitions at %.f Hz (%.2f s)\n',length(obj.Time),1/diff(obj.Time(1:2)),obj.Time(end));
+        else
+            fprintf(' -Not acquired\n')
+            disp(obj.Hardware,'simple')
+            fprintf(' -graphics:\n');
+            fprintf('   -Refresh: %.1f Hz\n',obj.fRefresh);
+            fprintf('   -Points:  %d\n',obj.nPoints);
+            fprintf('   -Span:    %.1f s\n',obj.tFrame);
+        end
             
+            
+           
+    end
+    
+    
+%% Slower Than Light Technology
+
+            STLDocking(obj);
+    [t1,t2]=STLReceive(obj,Marker,time_init,nbSensors,nbControls,Tend); 
+        obj=STLStorage(obj,t,s,c,m);
+[a,b,c,d,e]=STLCheck(obj)
+            STLplot(obj,Time,Data,Control)
+            
+        % Serial communication
+        function obj=openPort(obj)
+            obj.Hardware.openPort;
         end
         
-        function obj=open_port(obj)
-            if strcmpi(obj.Hardware.Port,'undefined');
-                error('No serial port has been set up for communication with hardware');
-            end
-            obj.Hardware.Serial=serial(obj.Hardware.Port);
-            set(obj.Hardware.Serial,'DataBits',8);
-            set(obj.Hardware.Serial,'BaudRate',9600);
-            set(obj.Hardware.Serial,'StopBits',1);
-            set(obj.Hardware.Serial,'Parity','none');
-            set(obj.Hardware.Serial,'InputBufferSize',512*1024);
-            set(obj.Hardware.Serial,'Timeout',60);     
-            % Intialisation
-            fopen(obj.Hardware.Serial); %% open the port
-            fprintf('Serial port ''%s'' open.\n',obj.Hardware.Port);
+        function closePort(obj)
+            obj.Hardware.closePort;
         end
         
-        function close_port(obj)
-            fclose(obj.Hardware.Serial);
-            fprintf('Serial port ''%s'' closed.\n',obj.Hardware.Port);
-            delete(obj.Hardware.Serial);
-            obj.Hardware=rmfield(obj.Hardware,'Serial');
-            fprintf('Serial object deleted.\n');
-        end
+%% Functionnalities
+
         
-        obj  = acquire(obj)     
+        obj  = acquire(obj,acquisition_time)     
         obj  = control(obj)
         obj  = stop(obj)
-        freq = check_arduino(obj)
-        obj  = set_arduino_parameters(obj,ChangeSettings)
                save(obj)
         obj  = makeLiveInterface(obj,nbfigs,TheFig)
     end
     
-%% Events callbacks    
-    methods (Static, Hidden)  
-        AutoPlot(metaProp,eventData)
-        HardwareChange(metaProp,eventData)
-    end
-    
+    %% Copy overload
+methods (Access = protected)
+      function cp = copyElement(obj)
+         % Shallow copy object
+         cp = copyElement@matlab.mixin.Copyable(obj);
+         cp.acquired=0;
+         cp.Data=[];
+         cp.Time=[];
+         cp.Action=[];
+         cp.AcqDate=[];
+         cp.BufferSize=0;
+         cp.iMeasurements=0;
+         cp.graphics.axes_handles=[];
+         cp.graphics.plot_handles=[];
+         cp.graphics.text_handles=[];
+         cp.graphics.iFrame=[];
+         cp.graphics.nStep=[];
+         cp.graphics.dt=[];
+         cp.graphics.nRefresh=[];
+      end
+end
 end

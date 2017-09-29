@@ -1,11 +1,10 @@
-function obj=stop(obj)
-%STOP       method of the RTData class. Stops any actuation in the arduino
-%           board.
+function createSerial(obj)
+% CREATESERIAL       RTDataHardware method. Creates and configure serial 
+%                    object.
 %
-%   RTDataObject.stop immediately sends the kill signal to the arduino
-%   board.
+%   RTDataHardwareObject.CREATESERIAL Creates and configure serial object.
 %
-%   See also: RTData
+%   See also: RTDataHardware
 %   Copyright (c) 2017, Thomas Duriez (Distributed under GPLv3)
 
 %% Copyright
@@ -23,11 +22,13 @@ function obj=stop(obj)
 %
 %    You should have received a copy of the GNU General Public License
 %    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    
-    obj.openPort;
-    KillCargo=zeros(1,11);
-    KillCargo(1)=2*16;
-    fwrite(obj.Hardware.Serial,KillCargo,'uint8');
-    
+
+    fprintf('Configuring serial object\n')
+    obj.Serial=serial(obj.Port);
+    set(obj.Serial,'DataBits',8);
+    set(obj.Serial,'BaudRate',230400);
+    set(obj.Serial,'StopBits',1);
+    set(obj.Serial,'Parity','none');
+    set(obj.Serial,'InputBufferSize',512*1024);
+    set(obj.Serial,'Timeout',60);
 end
-    

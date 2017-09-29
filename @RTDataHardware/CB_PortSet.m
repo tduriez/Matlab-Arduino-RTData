@@ -1,11 +1,10 @@
-function obj=stop(obj)
-%STOP       method of the RTData class. Stops any actuation in the arduino
-%           board.
+function CB_PortSet(~,eventData)
+%CB_PORTSET    RTDataHardware callback. Detect serial port change and
+%              trigger serial port creation.
 %
-%   RTDataObject.stop immediately sends the kill signal to the arduino
-%   board.
+%   Not supposed to be called by user. See file for comments.
 %
-%   See also: RTData
+%   See also: RTDataHardware
 %   Copyright (c) 2017, Thomas Duriez (Distributed under GPLv3)
 
 %% Copyright
@@ -23,11 +22,11 @@ function obj=stop(obj)
 %
 %    You should have received a copy of the GNU General Public License
 %    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    
-    obj.openPort;
-    KillCargo=zeros(1,11);
-    KillCargo(1)=2*16;
-    fwrite(obj.Hardware.Serial,KillCargo,'uint8');
-    
+
+    obj=eventData.AffectedObject;
+    if isa(obj.Serial,'serial')
+        obj.closePort(1);
+        delete(obj.Serial);
+    end
+    obj.createSerial;
 end
-    

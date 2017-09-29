@@ -17,7 +17,6 @@ function obj=control(obj)
 %           ----> R pulses of PW ms every D ms
 %       ---------------------------------------
 %
-%   CONTROL assumes the communication port is already opened.
 %
 %   See also: RTData
 %   Copyright (c) 2017, Thomas Duriez (Distributed under GPLv3)
@@ -39,17 +38,9 @@ function obj=control(obj)
 %    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-%%%%%%%%%%%  As control happens during acquisition: 
-%         %  SERIAL PORT IS ASSUMED OPENED
-%    %    %   
-%   % %   %  so control does not execute if port is not opened 
-%  % ! %  %
-% %%%%%%% %
-%         %
-%%%%%%%%%%%
 
-if ~isfield(obj.Hardware,'Serial');
-    fprintf('Serial port is closed');
+if isempty(obj.Control)
+    fprintf('No control defined\n');
     return
 end
 
@@ -63,11 +54,6 @@ if ~ismember(lower(obj.Control.Type),{'stagedsequence'})
     return;
 end
 
-Settings_sep=[repmat('-',[1 72]) '\n'];
-
-%% Shaping instruction string to send
-fprintf(Settings_sep);
-fprintf('Control Type: %s\n',obj.Control.Type);
 switch lower(obj.Control.Type)
     case 'stagedsequence'
         % Arduino expects a A as leading element of this command
@@ -75,13 +61,8 @@ switch lower(obj.Control.Type)
         fprintf('   - Pulse width : %d ms\n',obj.Control.PulseWidth);
         fprintf('   - Repetitions : %d\n',obj.Control.Repetition);
         fprintf('   - Delay       : %d ms\n',obj.Control.Delay);
-        ctrlstring=sprintf('A %06d %06d %06d',obj.Control.PulseWidth,obj.Control.Repetition,obj.Control.Delay);
-        
+        if isfield(obj.Control,'Trigger')
+            fprintf('   - Triggered at: %d ms\n',obj.Control.Trigger);
+        end
+        obj.Hardware.sendParams(obj.Control);
 end
-
-%% Sending String
-
-fprintf(Settings_sep);
-fprintf('Sending: %s\n',ctrlstring);
-fprintf(obj.Hardware.Serial,'%si\n',ctrlstring);
-fprintf(Settings_sep);

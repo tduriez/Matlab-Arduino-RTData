@@ -1,14 +1,14 @@
-# Matlab-Arduino-RTData
+# Matlab-Arduino-RTData Version 2.0
 
 Matlab-Arduino-RTdata provides an arduino script (RTData_arduino.ino) and a Matlab toolbox (RTData) in order to achieve data acquisition from the arduino board with real-time display. Some control capabilities have been added and the next versions will focus on this aspect.
  
 ## Features
 
-The toolbox has been tested and is expected to work only with an Arduino Due board. Support for other boards will come.
+The toolbox has been tested and is expected to work only with an Arduino Due board. Arduino Uno compatibility is still in dev. (check master branch).
 
 ### Acquisition (Arduino Due):
 
-- up to 12 analog input at 1kHz (12KS/s) confirmed. Higher rates might be possible.
+- up to 12 analog input at 10kHz (120KS/s) confirmed. Higher rates might be possible.
 - Being arduino Due, input voltage is limited to the range 0-3.3V at 12 bits resolution.
 
 ### Command (Arduino Due)
@@ -29,15 +29,17 @@ Though the tool can be used in command line and integrated to other software, th
 
 ## How it works
 
-The Matlab toolbox and the arduino board exchange data in ascii through the serial port. Every loop iteration, the following actions are achieved on the arduino:
+The Matlab toolbox and the arduino board exchange data through the serial port through the Slower Than Light Protocol. Every loop iteration, the following actions are achieved on the arduino:
 
 - Acquire each specified analog input, nMeasures times, and average for each.
 - Perform the control action if specified.
 - Send to the serial interface the analog input levels and control action.
-- Wait a specified number of ms (that's how frequency is set).
+- Wait a specified number of microseconds (that's how frequency is set).
 - Check if anything is available on the serial interface from matlab (acquisition settings, control action...) 
 
-On the other side, the acquisition function (RTData/acquire) opens a display and performs a loop which reads the serial buffer and updates the Time, Data and Action properties of the RTData object, until the real-time display is closed. A callback is called every time the Time properties is updated, and according to the settings (the refresh frequency in particular), the real time display is updated. The real-time display also counts with uicontrols that allow to send control actions and stop them.
+On the other side, the acquisition function (RTData/acquire) opens a display and performs a loop which reads the serial buffer and updates the Time, Data and Action properties in the Slower Than Light Protocol Storage, and redraw the graphics at the specified refresh requency, until the real-time display is closed. The real-time display also counts with uicontrols that allow to send control actions and stop them.
+
+A no-graphic mode is also available.
 
 ## Installation
 
@@ -49,6 +51,7 @@ On the other side, the acquisition function (RTData/acquire) opens a display and
 
 
 ## Quick start
+0- Burn the corrsponding arduino script on you arduino board (in RTData_arduino folder).
 
 1- Connect the Native Serial Port of the Arduino Due to your computer.
 

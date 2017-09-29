@@ -1,11 +1,10 @@
-function obj=stop(obj)
-%STOP       method of the RTData class. Stops any actuation in the arduino
-%           board.
+function CB_OnBoard(propChanged,eventData)
+%CB_ONBOARD    RTDataHardware callback. Detect parameter change and relay
+%              it to the arduino board
 %
-%   RTDataObject.stop immediately sends the kill signal to the arduino
-%   board.
+%   Not supposed to be called by user. See file for comments.
 %
-%   See also: RTData
+%   See also: RTDataHardware
 %   Copyright (c) 2017, Thomas Duriez (Distributed under GPLv3)
 
 %% Copyright
@@ -23,11 +22,17 @@ function obj=stop(obj)
 %
 %    You should have received a copy of the GNU General Public License
 %    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    
-    obj.openPort;
-    KillCargo=zeros(1,11);
-    KillCargo(1)=2*16;
-    fwrite(obj.Hardware.Serial,KillCargo,'uint8');
-    
+
+    Settings_sep=[repmat('-',[1 72]) '\n'];
+    fprintf(Settings_sep);
+    obj=eventData.AffectedObject;
+    switch propChanged.Name
+        case 'Delay'
+            fprintf('New loop delay: %d us.\n',obj.Delay);
+        case 'Channels'
+            fprintf('New number of input channels: %d.\n',obj.Channels);
+        case 'nMeasures'
+            fprintf('New number of averaging measures: %d.\n',obj.nMeasures);
+    end
+    obj.sendParams;
 end
-    

@@ -1,8 +1,7 @@
-function AutoPlot(metaProp,eventData)
-%AutoPlot   Callback function of the RTData class. Called every-time new
-%           data is available
+function STLPlot(h,Time,Data,Control)
+%STLPLOT   displays RT graphics
 %
-%   AUTOPLOT decides if the real-time display should be updated and acts
+%   STLPLOT decides if the real-time display should be updated and acts
 %   accordingly. See code for details.
 %
 % See also: RTData
@@ -24,22 +23,12 @@ function AutoPlot(metaProp,eventData)
 %    You should have received a copy of the GNU General Public License
 %    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-h=eventData.AffectedObject;
-
-%% determining the refresh period in number of measurements.
-if numel(h.Time)>=2 && isempty(h.graphics.nRefresh) % if not already done
-    if isempty(h.graphics.dt)
-        h.graphics.dt=h.Time(2)-h.Time(1);
-    end
-    h.graphics.nRefresh=round(1/(h.fRefresh*h.graphics.dt));
-end
 
 %% Refreshing
-if mod(numel(h.Time),h.graphics.nRefresh)==0
- 
+
     if isempty(h.tFrame)         % if no time frame is specified
-        DisplayTime=h.Time;      % draw all data always
-        DisplayData=h.Data;
+        DisplayTime=Time(1:h.iMeasurements);      % draw all data always
+        DisplayData=Data(1:h.iMeasurements,:);
         
     else
         if isempty(h.graphics.iFrame)  % determine how much points
@@ -51,12 +40,12 @@ if mod(numel(h.Time),h.graphics.nRefresh)==0
             h.graphics.nStep=max(1,round(h.graphics.iFrame/h.nPoints));
         end
         
-        DisplayTime=h.Time(max(1,end-h.graphics.iFrame):h.graphics.nStep:end);
-        DisplayData=[h.Data(max(1,end-h.graphics.iFrame):h.graphics.nStep:end,:)...
-                     h.Action(max(1,end-h.graphics.iFrame):h.graphics.nStep:end,:)];
+        DisplayTime=Time(max(1,h.iMeasurements-h.graphics.iFrame):h.graphics.nStep:h.iMeasurements);
+        DisplayData=[Data(max(1,h.iMeasurements-h.graphics.iFrame):h.graphics.nStep:h.iMeasurements,:)...
+                     Control(max(1,h.iMeasurements-h.graphics.iFrame):h.graphics.nStep:h.iMeasurements,:)];
     end
    
-    if ~isempty(h.graphics.plot_handles) % if display is not closed.
+try
         for k=1:numel(h.graphics.plot_handles)
             set(h.graphics.plot_handles(k),'XData',DisplayTime,'YData',DisplayData(:,k));
         end
@@ -66,10 +55,18 @@ if mod(numel(h.Time),h.graphics.nRefresh)==0
         end
         
         if numel(h.graphics.text_handles)>0
-            set(h.graphics.text_handles(1),'String',sprintf('%3.2f s',toc));
+            set(h.graphics.text_handles(1),'String',sprintf('%3.2f s, %d bytes',toc,get(h.Hardware.Serial,'BytesAvailable')));
+        end
+        drawnow limitrate
+catch err
+    if strcmp(err.message,'Invalid or deleted object.')
+        fprintf('Real-Time Display closed\n');
+    else
+        fprintf('%s\n',err.message);
+        for i=1:length(err.stack)
+            disp(err.stack(i));
         end
     end
-    
-    
 end
+    
 end

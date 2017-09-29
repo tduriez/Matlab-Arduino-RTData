@@ -1,11 +1,9 @@
-function obj=stop(obj)
-%STOP       method of the RTData class. Stops any actuation in the arduino
-%           board.
+function openPort(obj)
+%OPENPORT          RTDataHardware method. Opens serial port if possible.
 %
-%   RTDataObject.stop immediately sends the kill signal to the arduino
-%   board.
+%   RTDataHardwareObject.OPENPORT opens the serial port if not already open.
 %
-%   See also: RTData
+%   See also: RTDataHardware
 %   Copyright (c) 2017, Thomas Duriez (Distributed under GPLv3)
 
 %% Copyright
@@ -23,11 +21,28 @@ function obj=stop(obj)
 %
 %    You should have received a copy of the GNU General Public License
 %    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    
-    obj.openPort;
-    KillCargo=zeros(1,11);
-    KillCargo(1)=2*16;
-    fwrite(obj.Hardware.Serial,KillCargo,'uint8');
-    
+
+    if isempty(obj.Port)
+        error('Can''t open serial port: no serial port has been configured.');
+    end
+    if ~isa(obj.Serial,'serial')
+        obj.createSerial;
+    else
+        if isempty(obj.Serial)
+            obj.createSerial;
+        end
+    end
+
+    if ~isvalid(obj.Serial)
+        obj.createSerial;
+    end
+
+    if strcmpi(get(obj.Serial,'Status'),'closed')
+        fopen(obj.Serial);
+        fprintf('Serial port %s open\n',obj.Port)
+        obj.disp('serial');
+        obj.sendParams;
+    else
+        fprintf('Serial port %s already open\n',obj.Port)
+    end
 end
-    
