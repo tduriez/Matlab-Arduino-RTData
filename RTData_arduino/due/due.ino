@@ -1,4 +1,4 @@
-#define DEBUG // uncomment this line to get debug messages on Programming Port
+//#define DEBUG // uncomment this line to get debug messages on Programming Port
 
 #ifdef DEBUG
  #define DEBUG_PRINTLN(x)  Serial.println (x)
