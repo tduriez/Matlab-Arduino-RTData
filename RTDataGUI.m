@@ -133,7 +133,7 @@ function displayHardware(handles)
         return
     end
     disptxt{2}=sprintf('Board:      %s',handles.output.Hardware.Arduino);
-    disptxt{3}=sprintf('Loop delay: %d ms, (%.2f Hz)',handles.output.Hardware.Delay,1000/handles.output.Hardware.Delay);
+    disptxt{3}=sprintf('Loop delay: %d us, (%.2f Hz)',handles.output.Hardware.Delay,1000000/handles.output.Hardware.Delay);
     disptxt{4}=sprintf('Averaging:  %d points',handles.output.Hardware.nMeasures);
     disptxt{5}=sprintf('Channels:   %d',handles.output.Hardware.Channels);
     set(handles.ConfigList,'String',disptxt);
