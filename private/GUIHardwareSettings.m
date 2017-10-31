@@ -63,7 +63,7 @@ for i=1:12
 end
 set(handles.ChannelsMenu,'String',nums);
 setGUItoValue(handles);
-if ~isfield(handles.output.Hardware,'Port')
+if isempty(handles.output.Hardware.Port)
     state='off';
 else
     state='on';
@@ -88,7 +88,7 @@ function setGUItoValue(handles)
     idx=find(idx);
     set(handles.ArduinoMenu,'Value',idx);
     
-    if isfield(handles.output.Hardware,'Port');
+    if ~isempty(handles.output.Hardware.Port);
         detectedports=get(handles.PortMenu,'String');
         idx=strcmpi(handles.output.Hardware.Port,detectedports);
         idx=find(idx);
@@ -105,6 +105,9 @@ function setGUItoValue(handles)
     
     
 function getSerials(handles)
+    if ~isempty(instrfindall)
+        fclose(instrfindall);
+    end
     serialInfo = instrhwinfo('serial');
     set(handles.PortMenu,'String',[{'Undefined'}; serialInfo.AvailableSerialPorts],'Value',1);
 
