@@ -94,6 +94,9 @@ function [control,TheBytes]=demultiplexbyte(TheBytes,nbControl)
 Sensorbyte=[5; 5; 5; 5];
 Controlbit=[8; 7; 6; 5];
 control=(TheBytes(Sensorbyte)-mod(TheBytes(Sensorbyte),2.^(Controlbit-1)))./2.^(Controlbit-1);
+control(1)=TheBytes(5);
 TheBytes(Sensorbyte)=TheBytes(Sensorbyte)-control.*2.^(Controlbit-1);
-control=control(1:nbControl);
+
+
+%keyboard
 end

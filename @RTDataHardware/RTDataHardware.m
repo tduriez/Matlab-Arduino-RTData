@@ -47,6 +47,7 @@ classdef RTDataHardware < matlab.mixin.Copyable
         Delay=1000
         Port
         Channels=2
+        ControlPorts=4
         nMeasures=1
     end
     

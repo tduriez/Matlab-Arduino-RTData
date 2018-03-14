@@ -45,7 +45,7 @@ if ~obj.acquired
         
         %% determine nb sensors and controls
         nbSensors=obj.Hardware.Channels;
-        nbControls=1;
+        nbControls=obj.Hardware.ControlPorts;
         nbFigs=nbSensors+nbControls;
         
         %% Launch real-time display
