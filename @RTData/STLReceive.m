@@ -89,14 +89,17 @@ end
 
 end
 
-function [control,TheBytes]=demultiplexbyte(TheBytes,nbControl)
-% 4 controls can be coded on each sensors.
-Sensorbyte=[5; 5; 5; 5];
-Controlbit=[8; 7; 6; 5];
-control=(TheBytes(Sensorbyte)-mod(TheBytes(Sensorbyte),2.^(Controlbit-1)))./2.^(Controlbit-1);
-control(1)=TheBytes(5);
-TheBytes(Sensorbyte)=TheBytes(Sensorbyte)-control.*2.^(Controlbit-1);
-
-
-%keyboard
+function [Control,TheBytes]=demultiplexbyte(TheBytes,nbControl)
+%Control 1 to 4
+Control=zeros(1,nbControl);
+Sensorbyte=5;
+Bits=[8,7,6,5];
+value=TheBytes(Sensorbyte);
+for i=1:nbControl
+    Control(i)=(value-mod(value,2^(Bits(i)-1)));
+    value=value-Control(i);
+    fprintf('New value: %d\n',value);
+end
+Control=Control./2.^(Bits -1);
+TheBytes(Sensorbyte)=value;
 end
