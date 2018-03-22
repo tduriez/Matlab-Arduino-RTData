@@ -1,4 +1,7 @@
-#define DEBUG // uncomment this line to get debug messages on Programming Port
+#define DEBUG     // uncomment this line to get debug messages on Programming Port
+#define STL_DEBUG // uncomment this line to get debug messages on Programming Port for STL Communication
+
+
 
 #ifdef DEBUG
 #define DEBUG_PRINTLN(x)  Serial.println (x)
@@ -6,6 +9,14 @@
 #else
 #define DEBUG_PRINTLN(x)
 #define DEBUG_PRINT(x)
+#endif
+
+#ifdef STL_DEBUG
+#define STL_DEBUG_PRINTLN(x)  Serial.println (x)
+#define STL_DEBUG_PRINT(x)  Serial.print (x)
+#else
+#define STL_DEBUG_PRINTLN(x)
+#define STL_DEBUG_PRINT(x)
 #endif
 
 /* *****************
@@ -73,30 +84,7 @@ void rescaleSensors(int Sensors[], int nSensors, int nMeasures) {
 }
 
 void SlowerThanLightWriter(int Sensors[], int Control[], int nSensors) {
-  /* 
-   *  Control Overwrite
-   *  REMOVE AFTER TEST
-   */
-    Control[0]=1;
-    Control[1]=0;
-    Control[2]=1;
-    Control[3]=0;
-  if (millis() % 1000 <500) {
-    Control[0]=0;
-    Control[1]=1;
-    Control[2]=0;
-    Control[3]=1;
-  } 
-
-  /* 
-   *  End of Control Overwrite
-   *  REMOVE AFTER TEST
-   */
-  
-
-
-   
-  
+ 
   byte thebuffer[30];
   char str[31];
   int iBit;
@@ -150,7 +138,19 @@ int SlowerThanLightReader(unsigned long params[]) { /* TODO receive control inst
     int ControlChar;
     byte fromBuffer[11];
     SerialUSB.readBytes(fromBuffer, 11);
+    #ifdef STL_DEBUG
+      int ii;
+      for (ii=0;ii<11;ii++) {
+        Serial.print(fromBuffer[ii]);
+        Serial.print(" ");
+        }
+        Serial.println("");
+    #endif
+
+    
     ControlChar = fromBuffer[0] >> 4;
+    STL_DEBUG_PRINT("Mode is ");
+    STL_DEBUG_PRINTLN(ControlChar);
     params[0] = fromBuffer[0] - ControlChar * 16;
     params[1] = fromBuffer[1];
     params[2] = fromBuffer[2] * 16777216 + fromBuffer[3] * 65536 + fromBuffer[4] * 256 + fromBuffer[5];

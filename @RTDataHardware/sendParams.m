@@ -1,13 +1,13 @@
-function sendParams(obj,Control)
+function sendParams(obj,Controls)
 %SENDPARAMS        RTDataHardware method. Sends parameters to arduino.
 %
 %   Not supposed to be called by user. See file for comments
 %
 %   See also: RTDataHardware
-%   Copyright (c) 2017, Thomas Duriez (Distributed under GPLv3)
+%   Copyright (c) 2017-18, Thomas Duriez (Distributed under GPLv3)
 
 %% Copyright
-%    Copyright (c) 2017, Thomas Duriez (thomas.duriez@gmail.com)
+%    Copyright (c) 2017-18, Thomas Duriez (thomas.duriez@gmail.com)
 %
 %    This program is free software: you can redistribute it and/or modify
 %    it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ function sendParams(obj,Control)
    
 
     if nargin<2
-        Control=[];
+        Controls=[];
     end
     STLCargo=zeros(1,11);
     STLCargo(1)=obj.Channels+16;
@@ -44,7 +44,11 @@ function sendParams(obj,Control)
     STLCargo(5)=mod(obj.Delay-STLCargo(6),2^16)/2^8;
     STLCargo(4)=mod(obj.Delay-STLCargo(6)-STLCargo(5)*2^8,2^24)/2^16;
     STLCargo(3)=(obj.Delay-STLCargo(6)-STLCargo(5)*2^8-STLCargo(4)*2^16)/2^24;
-    if ~isempty(Control)
+    
+    
+    for i=1:numel(Controls)
+        Control=Controls(i);
+        STLCargo(1)=obj.Channels+16*i;
         switch lower(Control.Type)
             case 'stagedsequence'
                 STLCargo(8)=mod(Control.PulseWidth,2^8);
@@ -53,7 +57,6 @@ function sendParams(obj,Control)
                 STLCargo(11)=mod(Control.Delay,2^8);
                 STLCargo(10)=(Control.Delay-STLCargo(11))/2^8;
         end
-    end
     Settings_sep=[repmat('-',[1 72]) '\n'];
     obj.openPort;
     fprintf(Settings_sep);
@@ -63,4 +66,5 @@ function sendParams(obj,Control)
     flushinput(obj.Serial);
     flushoutput(obj.Serial);
     fwrite(obj.Serial,STLCargo,'uint8');
+    end
 end

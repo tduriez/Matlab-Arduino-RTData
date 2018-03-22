@@ -98,7 +98,6 @@ value=TheBytes(Sensorbyte);
 for i=1:nbControl
     Control(i)=(value-mod(value,2^(Bits(i)-1)));
     value=value-Control(i);
-    fprintf('New value: %d\n',value);
 end
 Control=Control./2.^(Bits -1);
 TheBytes(Sensorbyte)=value;
