@@ -22,7 +22,7 @@ function varargout = StageSequence(varargin)
 
 % Edit the above text to modify the response to help StageSequence
 
-% Last Modified by GUIDE v2.5 01-Sep-2017 11:01:53
+% Last Modified by GUIDE v2.5 23-Mar-2018 15:42:14
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -67,10 +67,11 @@ else
 end
 
 if reset
-    handles.output.Control.Type='StagedSequence';
-    handles.output.Control.Delay=120*1000; %2 mins
-    handles.output.Control.PulseWidth=400; %400 us
-    handles.output.Control.Repetition=1 ; %single pulse
+    handles.output.Control=struct;
+    handles.output.Control(1).Type='StagedSequence';
+    handles.output.Control(1).Delay=120*1000; %2 mins
+    handles.output.Control(1).PulseWidth=400; %400 us
+    handles.output.Control(1).Repetition=1 ; %single pulse
 end
 
 setfigtovalues(handles);
@@ -83,30 +84,44 @@ guidata(hObject, handles);
 uiwait(handles.figure1);
 
 function setfigtovalues(handles)
-    set(handles.PulseWidthEdt,'String',...
-        sprintf('%d', handles.output.Control.PulseWidth));
-    set(handles.RepetitionsEdt,'String',...
-        sprintf('%d', handles.output.Control.Repetition));
-    set(handles.PeriodEdt,'String',...
-        sprintf('%d', handles.output.Control.Delay));
+    nbcontrol=length(handles.output.Control);
+    stringpop=cell(1,nbcontrol+1);stringpop{1}='All controls';
+    for i=2:length(stringpop)
+        stringpop{i}=sprintf('Control %d',i-1);
+    end
+    set(handles.ControlPop,'String',stringpop);
     
-function setvaluetofig(handles)
-    handles.output.Control.PulseWidth=str2double(get(handles.PulseWidthEdt,'String'));
-    handles.output.Control.Repetition=str2double(get(handles.RepetitionsEdt,'String'));
-    handles.output.Control.Delay=str2double(get(handles.PeriodEdt,'String'));
+    listtext=cell(1,nbcontrol);
+    for i=1:nbcontrol
+        listtext{i}=sprintf('%d\t%d\t%d',handles.output.Control.PulseWidth,handles.output.Control.Repetition,handles.output.Control.Delay);
+    end
+    
+    set(handles.ControlList,'String',listtext);
+    
+    
+% function setvaluetofig(handles)
+%     handles.output.Control.PulseWidth=str2double(get(handles.PulseWidthEdt,'String'));
+%     handles.output.Control.Repetition=str2double(get(handles.RepetitionsEdt,'String'));
+%     handles.output.Control.Delay=str2double(get(handles.PeriodEdt,'String'));
     
 function showsequence(handles)
-    Delay=handles.output.Control.Delay;
-    Width=handles.output.Control.PulseWidth;
-    Reps=handles.output.Control.Repetition;
-    axes(handles.axes1);
-    dt=handles.output.Hardware.Delay/1000;
-    
-    t=0:dt:Reps*Delay;
-    control=t*0;
-    for i=1:Reps
-        control((t>=Delay*(i-1)) &  (t<Delay*(i-1)+Width))=1;
+    nbcontrol=length(handles.output.Control);
+    for i=1:nbcontrol
+        Delay(i)=handles.output.Control(i).Delay;
+        Width(i)=handles.output.Control(i).PulseWidth;
+        Reps(i)=handles.output.Control(i).Repetition;
     end
+    axes(handles.axes1);
+    dt=handles.output.Hardware.Delay/10^6;
+    
+    t=0:dt:max(Reps.*Delay);
+    control=repmat(t*0,[1 nbcontrol]);
+    for i=1:nbcontrol
+        for j=1:Reps(i)
+        control((t>=Delay(i)*(j-1)) &  (t<Delay(i)*(j-1)+Width(i)),i)=1;
+        end
+    end
+    
     plot(t/1000,control);
     xlabel('time (s)')
     ylabel('control')
@@ -127,75 +142,6 @@ close(gcf);
 
 
 
-function PulseWidthEdt_Callback(hObject, eventdata, handles)
-% hObject    handle to PulseWidthEdt (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-setvaluetofig(handles);
-showsequence(handles);
-% Hints: get(hObject,'String') returns contents of PulseWidthEdt as text
-%        str2double(get(hObject,'String')) returns contents of PulseWidthEdt as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function PulseWidthEdt_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to PulseWidthEdt (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function RepetitionsEdt_Callback(hObject, eventdata, handles)
-% hObject    handle to RepetitionsEdt (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-setvaluetofig(handles);
-showsequence(handles);
-% Hints: get(hObject,'String') returns contents of RepetitionsEdt as text
-%        str2double(get(hObject,'String')) returns contents of RepetitionsEdt as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function RepetitionsEdt_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to RepetitionsEdt (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function PeriodEdt_Callback(hObject, eventdata, handles)
-% hObject    handle to PeriodEdt (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-setvaluetofig(handles);
-showsequence(handles);
-% Hints: get(hObject,'String') returns contents of PeriodEdt as text
-%        str2double(get(hObject,'String')) returns contents of PeriodEdt as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function PeriodEdt_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to PeriodEdt (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
 
 
 % --- Executes on button press in DoneBttn.
@@ -204,3 +150,70 @@ function DoneBttn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 uiresume
+
+
+% --- Executes on selection change in ControlList.
+function ControlList_Callback(hObject, eventdata, handles)
+% hObject    handle to ControlList (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns ControlList contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from ControlList
+
+
+% --- Executes during object creation, after setting all properties.
+function ControlList_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to ControlList (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in AddBttn.
+function AddBttn_Callback(hObject, eventdata, handles)
+% hObject    handle to AddBttn (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in RemoveBttn.
+function RemoveBttn_Callback(hObject, eventdata, handles)
+% hObject    handle to RemoveBttn (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in EditBttn.
+function EditBttn_Callback(hObject, eventdata, handles)
+% hObject    handle to EditBttn (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on selection change in ControlPop.
+function ControlPop_Callback(hObject, eventdata, handles)
+% hObject    handle to ControlPop (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns ControlPop contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from ControlPop
+
+
+% --- Executes during object creation, after setting all properties.
+function ControlPop_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to ControlPop (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
