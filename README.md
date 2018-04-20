@@ -1,6 +1,8 @@
 # Matlab-Arduino-RTData Version 2.0
 
 Matlab-Arduino-RTdata provides an arduino script (RTData_arduino.ino) and a Matlab toolbox (RTData) in order to achieve data acquisition from the arduino board with real-time display. Some control capabilities have been added and the next versions will focus on this aspect.
+
+This work has been funded through the CONICET grant PIP 112 201501 00243 CO. This work has been realized at the Nano and Microfluidic Laboraory of the Universidad de la Marina Mercante, Buenos Aires Argentina.
  
 ## Features
 
