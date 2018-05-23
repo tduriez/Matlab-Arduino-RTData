@@ -346,7 +346,7 @@ void loop() {
       }
       DEBUG_PRINTLN("Back to normal mode");
     }
-    if (mode == 1) { // Config mode
+    if (mode > 0 & mode <= 1) { // Config mode
       DEBUG_PRINTLN("It's Config mode !");
       nSensors       = Parameters[0];
       nMeasures      = Parameters[1];
