@@ -45,6 +45,9 @@ function sendParams(obj,Controls)
     STLCargo(4)=mod(obj.Delay-STLCargo(6)-STLCargo(5)*2^8,2^24)/2^16;
     STLCargo(3)=(obj.Delay-STLCargo(6)-STLCargo(5)*2^8-STLCargo(4)*2^16)/2^24;
     
+    if isempty(Controls)
+        Controls.Type='None';
+    end
     
     for i=1:numel(Controls)
         Control=Controls(i);

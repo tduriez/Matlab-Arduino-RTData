@@ -26,7 +26,7 @@ function obj=stop(obj)
     
     obj.openPort;
     KillCargo=zeros(1,11);
-    KillCargo(1)=2*16;
+    KillCargo(1)=14*16;
     fwrite(obj.Hardware.Serial,KillCargo,'uint8');
     
 end

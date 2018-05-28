@@ -44,7 +44,7 @@ if isempty(obj.Control)
     return
 end
 
-if ~ismember(lower(obj.Control.Type),{'stagedsequence'})
+if ~ismember(lower(obj.Control(1).Type),{'stagedsequence'})
     if strcmpi(obj.Control.Type,'none')
         fprintf('Control method is set to ''None''\n');
     else

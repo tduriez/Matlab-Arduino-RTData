@@ -339,15 +339,23 @@ void loop() {
       }
       DEBUG_PRINT("Info sent ");
       DEBUG_PRINT(N);
-      DEBUG_PRINT(" times.");
+      DEBUG_PRINTLN(" times.");
+      DEBUG_PRINT("nSensors: ");
+      DEBUG_PRINTLN(nSensors);
+      DEBUG_PRINT("nMeasures: ");
+      DEBUG_PRINTLN(nMeasures);
+      DEBUG_PRINT("Delay: ");
+      DEBUG_PRINTLN(TheDelay);
       while (SerialUSB.available() > 0) {
         char junk[1];
         SerialUSB.readBytes(junk, 1);
       }
       DEBUG_PRINTLN("Back to normal mode");
     }
-    if (mode > 0 & mode <= 1) { // Config mode
+    if (mode > 0 & mode < 5) { // Config mode
       DEBUG_PRINTLN("It's Config mode !");
+      DEBUG_PRINT("Mode = ");
+      DEBUG_PRINTLN(mode);
       nSensors       = Parameters[0];
       nMeasures      = Parameters[1];
       TheDelay       = Parameters[2];
@@ -373,7 +381,7 @@ void loop() {
       DEBUG_PRINT("Control Char: ");
       DEBUG_PRINTLN(mode);
     }
-    if (mode == 2) { // Kill Mode
+    if (mode == 14) { // Kill Mode
       ActTime[0] = 4294967295;
       ActTimeOut[0] = 0;
       DEBUG_PRINTLN("Actuation killed!!!");
