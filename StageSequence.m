@@ -22,7 +22,7 @@ function varargout = StageSequence(varargin)
 
 % Edit the above text to modify the response to help StageSequence
 
-% Last Modified by GUIDE v2.5 30-May-2018 15:45:53
+% Last Modified by GUIDE v2.5 30-May-2018 15:54:12
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -51,15 +51,112 @@ function StageSequence_OpeningFcn(hObject, eventdata, handles, varargin)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to StageSequence (see VARARGIN)
+set(gcf,'CloseRequestFcn',[]);
 
 % Choose default command line output for StageSequence
-handles.output = hObject;
+handles.output = varargin{1};
+%% Setting to default values
+reset=0;
+if isempty(handles.output.Control)
+    reset=1;
+else
+    if ~strcmpi(handles.output.Control.Type,'stagedsequence')
+        reset=1;
+    end
+end
+
+if reset
+    handles.output.Control=struct;
+    handles.output.Control(1).Type='StagedSequence';
+    handles.output.Control(1).Delay=120*1000; %2 mins
+    handles.output.Control(1).PulseWidth=400; %400 us
+    handles.output.Control(1).Repetition=1 ; %single pulse
+    handles.output.Control(1).TrigDelay=0 ; %immediate start
+end
+
+setfigtovalues(handles);
+
 
 % Update handles structure
 guidata(hObject, handles);
 
 % UIWAIT makes StageSequence wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
+uiwait(handles.figure1);
+
+function setfigtovalues(handles)
+    for i=1:length(handles.output.Control)
+        eval(sprintf('set(handles.PulseWidthEdt%d,''String'',num2str(handles.output.Control(i).PulseWidth));',i));
+        eval(sprintf('set(handles.RepetitionsEdt%d,''String'',num2str(handles.output.Control(i).Repetition));',i));
+        eval(sprintf('set(handles.TriggerDelay%d,''String'',num2str(handles.output.Control(i).TrigDelay));',i));
+        eval(sprintf('set(handles.InterPulseEdt%d,''String'',num2str(handles.output.Control(i).Delay));',i));
+    end
+    showsequence(handles);
+        
+function setvaluestofig(handles)
+    for i=1:4
+        eval(sprintf('Width=str2double(get(handles.PulseWidthEdt%d,''String''));',i));
+        eval(sprintf('Delay=str2double(get(handles.InterPulseEdt%d,''String''));',i));
+        eval(sprintf('Reps=str2double(get(handles.RepetitionsEdt%d,''String''));',i));
+        eval(sprintf('TrigDel=str2double(get(handles.TriggerDelay%d,''String''));',i));
+        handles.output.Control(i).PulseWidth=Width;
+        handles.output.Control(i).Repetition=Reps;
+        handles.output.Control(i).TrigDelay=TrigDel;
+        handles.output.Control(i).Delay=Delay;
+    end
+    showsequence(handles);
+        
+function showsequence(handles)
+    n=get(handles.SelectPop,'Value');
+    switch n
+        case 1
+            imin=1;
+            imax=4;
+        otherwise
+            imin=n-1;
+            imax=n-1;
+    end
+    
+    Delay=zeros(1,4);
+    Width=zeros(1,4);
+    Reps=zeros(1,4);
+    TrigDel=zeros(1,4);
+    
+    for i=1:length(handles.output.Control)
+        Delay(i)=handles.output.Control(i).Delay/1000;
+        Width(i)=handles.output.Control(i).PulseWidth/1000;
+        Reps(i)=handles.output.Control(i).Repetition;
+        TrigDel(i)=handles.output.Control(i).TrigDelay/1000;
+    end
+    
+    axes(handles.axes1);
+    dt=handles.output.Hardware.Delay/10^6;
+
+    for i=imin:imax
+       t=-dt;
+       control=0;
+       
+       for j=1:Reps(i)
+           t=[t (j-1)*Delay(i) (j-1)*Delay(i)+Width(i) (j-1)*Delay(i)+Width(i)+dt (j)*Delay(i)-dt];
+           control=[control 1 1 0 0];
+       end
+       
+       
+       if TrigDel(i)>0
+           t=[0 t+TrigDel(i)];
+           control=[0 control];
+       end
+       
+       
+
+        
+        plot(t/1000,control);
+        hold on
+    end
+    hold off
+    xlabel('time (s)')
+    ylabel('control')
+    
+    
 
 
 % --- Outputs from this function are returned to the command line.
@@ -68,24 +165,25 @@ function varargout = StageSequence_OutputFcn(hObject, eventdata, handles)
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+set(gcf,'CloseRequestFcn','closereq');
 % Get default command line output from handles structure
 varargout{1} = handles.output;
+close(gcf);
 
 
-% --- Executes on selection change in popupmenu1.
-function popupmenu1_Callback(hObject, eventdata, handles)
-% hObject    handle to popupmenu1 (see GCBO)
+% --- Executes on selection change in SelectPop.
+function SelectPop_Callback(hObject, eventdata, handles)
+% hObject    handle to SelectPop (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu1 contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from popupmenu1
+showsequence(handles);
+% Hints: contents = cellstr(get(hObject,'String')) returns SelectPop contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from SelectPop
 
 
 % --- Executes during object creation, after setting all properties.
-function popupmenu1_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to popupmenu1 (see GCBO)
+function SelectPop_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to SelectPop (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -96,26 +194,26 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in pushbutton1.
-function pushbutton1_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton1 (see GCBO)
+% --- Executes on button press in DoneBttn.
+function DoneBttn_Callback(hObject, eventdata, handles)
+% hObject    handle to DoneBttn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+uiresume
 
 
-
-function edit13_Callback(hObject, eventdata, handles)
-% hObject    handle to edit13 (see GCBO)
+function PulseWidthEdt1_Callback(hObject, eventdata, handles)
+% hObject    handle to PulseWidthEdt1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit13 as text
-%        str2double(get(hObject,'String')) returns contents of edit13 as a double
+setvaluestofig(handles)
+% Hints: get(hObject,'String') returns contents of PulseWidthEdt1 as text
+%        str2double(get(hObject,'String')) returns contents of PulseWidthEdt1 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit13_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit13 (see GCBO)
+function PulseWidthEdt1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to PulseWidthEdt1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -127,18 +225,18 @@ end
 
 
 
-function edit14_Callback(hObject, eventdata, handles)
-% hObject    handle to edit14 (see GCBO)
+function InterPulseEdt1_Callback(hObject, eventdata, handles)
+% hObject    handle to InterPulseEdt1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit14 as text
-%        str2double(get(hObject,'String')) returns contents of edit14 as a double
+setvaluestofig(handles)
+% Hints: get(hObject,'String') returns contents of InterPulseEdt1 as text
+%        str2double(get(hObject,'String')) returns contents of InterPulseEdt1 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit14_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit14 (see GCBO)
+function InterPulseEdt1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to InterPulseEdt1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -150,18 +248,18 @@ end
 
 
 
-function edit15_Callback(hObject, eventdata, handles)
-% hObject    handle to edit15 (see GCBO)
+function RepetitionsEdt1_Callback(hObject, eventdata, handles)
+% hObject    handle to RepetitionsEdt1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit15 as text
-%        str2double(get(hObject,'String')) returns contents of edit15 as a double
+setvaluestofig(handles)
+% Hints: get(hObject,'String') returns contents of RepetitionsEdt1 as text
+%        str2double(get(hObject,'String')) returns contents of RepetitionsEdt1 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit15_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit15 (see GCBO)
+function RepetitionsEdt1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to RepetitionsEdt1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -173,18 +271,18 @@ end
 
 
 
-function edit16_Callback(hObject, eventdata, handles)
-% hObject    handle to edit16 (see GCBO)
+function TriggerDelay1_Callback(hObject, eventdata, handles)
+% hObject    handle to TriggerDelay1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit16 as text
-%        str2double(get(hObject,'String')) returns contents of edit16 as a double
+setvaluestofig(handles)
+% Hints: get(hObject,'String') returns contents of TriggerDelay1 as text
+%        str2double(get(hObject,'String')) returns contents of TriggerDelay1 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit16_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit16 (see GCBO)
+function TriggerDelay1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to TriggerDelay1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -196,18 +294,18 @@ end
 
 
 
-function edit12_Callback(hObject, eventdata, handles)
-% hObject    handle to edit12 (see GCBO)
+function TriggerDelay4_Callback(hObject, eventdata, handles)
+% hObject    handle to TriggerDelay4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit12 as text
-%        str2double(get(hObject,'String')) returns contents of edit12 as a double
+setvaluestofig(handles)
+% Hints: get(hObject,'String') returns contents of TriggerDelay4 as text
+%        str2double(get(hObject,'String')) returns contents of TriggerDelay4 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit12_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit12 (see GCBO)
+function TriggerDelay4_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to TriggerDelay4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -219,18 +317,18 @@ end
 
 
 
-function edit11_Callback(hObject, eventdata, handles)
-% hObject    handle to edit11 (see GCBO)
+function RepetitionsEdt4_Callback(hObject, eventdata, handles)
+% hObject    handle to RepetitionsEdt4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit11 as text
-%        str2double(get(hObject,'String')) returns contents of edit11 as a double
+setvaluestofig(handles)
+% Hints: get(hObject,'String') returns contents of RepetitionsEdt4 as text
+%        str2double(get(hObject,'String')) returns contents of RepetitionsEdt4 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit11_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit11 (see GCBO)
+function RepetitionsEdt4_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to RepetitionsEdt4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -242,18 +340,18 @@ end
 
 
 
-function edit10_Callback(hObject, eventdata, handles)
-% hObject    handle to edit10 (see GCBO)
+function InterPulseEdt4_Callback(hObject, eventdata, handles)
+% hObject    handle to InterPulseEdt4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit10 as text
-%        str2double(get(hObject,'String')) returns contents of edit10 as a double
+setvaluestofig(handles)
+% Hints: get(hObject,'String') returns contents of InterPulseEdt4 as text
+%        str2double(get(hObject,'String')) returns contents of InterPulseEdt4 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit10_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit10 (see GCBO)
+function InterPulseEdt4_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to InterPulseEdt4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -265,18 +363,18 @@ end
 
 
 
-function edit9_Callback(hObject, eventdata, handles)
-% hObject    handle to edit9 (see GCBO)
+function PulseWidthEdt4_Callback(hObject, eventdata, handles)
+% hObject    handle to PulseWidthEdt4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit9 as text
-%        str2double(get(hObject,'String')) returns contents of edit9 as a double
+setvaluestofig(handles)
+% Hints: getsetvaluestofig(handles)(hObject,'String') returns contents of PulseWidthEdt4 as text
+%        str2double(get(hObject,'String')) returns contents of PulseWidthEdt4 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit9_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit9 (see GCBO)
+function PulseWidthEdt4_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to PulseWidthEdt4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -288,18 +386,18 @@ end
 
 
 
-function edit8_Callback(hObject, eventdata, handles)
-% hObject    handle to edit8 (see GCBO)
+function TriggerDelay3_Callback(hObject, eventdata, handles)
+% hObject    handle to TriggerDelay3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit8 as text
-%        str2double(get(hObject,'String')) returns contents of edit8 as a double
+setvaluestofig(handles)
+% Hints: get(hObject,'String') returns contents of TriggerDelay3 as text
+%        str2double(get(hObject,'String')) returns contents of TriggerDelay3 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit8_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit8 (see GCBO)
+function TriggerDelay3_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to TriggerDelay3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -311,18 +409,18 @@ end
 
 
 
-function edit7_Callback(hObject, eventdata, handles)
-% hObject    handle to edit7 (see GCBO)
+function RepetitionsEdt3_Callback(hObject, eventdata, handles)
+% hObject    handle to RepetitionsEdt3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit7 as text
-%        str2double(get(hObject,'String')) returns contents of edit7 as a double
+setvaluestofig(handles)
+% Hints: get(hObject,'String') returns contents of RepetitionsEdt3 as text
+%        str2double(get(hObject,'String')) returns contents of RepetitionsEdt3 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit7_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit7 (see GCBO)
+function RepetitionsEdt3_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to RepetitionsEdt3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -334,18 +432,18 @@ end
 
 
 
-function edit6_Callback(hObject, eventdata, handles)
-% hObject    handle to edit6 (see GCBO)
+function InterPulseEdt3_Callback(hObject, eventdata, handles)
+% hObject    handle to InterPulseEdt3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit6 as text
-%        str2double(get(hObject,'String')) returns contents of edit6 as a double
+setvaluestofig(handles)
+% Hints: get(hObject,'String') returns contents of InterPulseEdt3 as text
+%        str2double(get(hObject,'String')) returns contents of InterPulseEdt3 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit6_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit6 (see GCBO)
+function InterPulseEdt3_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to InterPulseEdt3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -357,18 +455,18 @@ end
 
 
 
-function edit5_Callback(hObject, eventdata, handles)
-% hObject    handle to edit5 (see GCBO)
+function PulseWidthEdt3_Callback(hObject, eventdata, handles)
+% hObject    handle to PulseWidthEdt3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit5 as text
-%        str2double(get(hObject,'String')) returns contents of edit5 as a double
+setvaluestofig(handles)
+% Hints: get(hObject,'String') returns contents of PulseWidthEdt3 as text
+%        str2double(get(hObject,'String')) returns contents of PulseWidthEdt3 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit5_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit5 (see GCBO)
+function PulseWidthEdt3_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to PulseWidthEdt3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -380,18 +478,18 @@ end
 
 
 
-function edit1_Callback(hObject, eventdata, handles)
-% hObject    handle to edit1 (see GCBO)
+function TriggerDelay2_Callback(hObject, eventdata, handles)
+% hObject    handle to TriggerDelay2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit1 as text
-%        str2double(get(hObject,'String')) returns contents of edit1 as a double
+setvaluestofig(handles)
+% Hints: get(hObject,'String') returns contents of TriggerDelay2 as text
+%        str2double(get(hObject,'String')) returns contents of TriggerDelay2 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit1_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit1 (see GCBO)
+function TriggerDelay2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to TriggerDelay2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -403,18 +501,18 @@ end
 
 
 
-function edit2_Callback(hObject, eventdata, handles)
-% hObject    handle to edit2 (see GCBO)
+function RepetitionsEdt2_Callback(hObject, eventdata, handles)
+% hObject    handle to RepetitionsEdt2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit2 as text
-%        str2double(get(hObject,'String')) returns contents of edit2 as a double
+setvaluestofig(handles)
+% Hints: get(hObject,'String') returns contents of RepetitionsEdt2 as text
+%        str2double(get(hObject,'String')) returns contents of RepetitionsEdt2 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit2_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit2 (see GCBO)
+function RepetitionsEdt2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to RepetitionsEdt2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -426,18 +524,18 @@ end
 
 
 
-function edit3_Callback(hObject, eventdata, handles)
-% hObject    handle to edit3 (see GCBO)
+function InterPulseEdt2_Callback(hObject, eventdata, handles)
+% hObject    handle to InterPulseEdt2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit3 as text
-%        str2double(get(hObject,'String')) returns contents of edit3 as a double
+setvaluestofig(handles)
+% Hints: get(hObject,'String') returns contents of InterPulseEdt2 as text
+%        str2double(get(hObject,'String')) returns contents of InterPulseEdt2 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit3_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit3 (see GCBO)
+function InterPulseEdt2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to InterPulseEdt2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -449,18 +547,18 @@ end
 
 
 
-function edit4_Callback(hObject, eventdata, handles)
-% hObject    handle to edit4 (see GCBO)
+function PulseWidthEdt2_Callback(hObject, eventdata, handles)
+% hObject    handle to PulseWidthEdt2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit4 as text
-%        str2double(get(hObject,'String')) returns contents of edit4 as a double
+setvaluestofig(handles)
+% Hints: get(hObject,'String') returns contents of PulseWidthEdt2 as text
+%        str2double(get(hObject,'String')) returns contents of PulseWidthEdt2 as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit4_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit4 (see GCBO)
+function PulseWidthEdt2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to PulseWidthEdt2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
