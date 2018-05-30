@@ -133,14 +133,15 @@ int SlowerThanLightReader(unsigned long params[]) { /* TODO receive control inst
       Bytes 7,8     : Pulse Width (ms) (max 65535)                 -------> params[3]
       Byte 9        : repetitions-1 (max 256)                      -------> params[4]
       Bytes 10,11   : Control delay (ms) (max 65535)               -------> params[5]
+      Bytes 12,13   : Control trigger delay (ms) (max 65535)       -------> params[6]
   */
   if (SerialUSB.available() > 10) { /* Information comes in packets of 11 */
     int ControlChar;
-    byte fromBuffer[11];
-    SerialUSB.readBytes(fromBuffer, 11);
+    byte fromBuffer[13];
+    SerialUSB.readBytes(fromBuffer, 13);
     #ifdef STL_DEBUG
       int ii;
-      for (ii=0;ii<11;ii++) {
+      for (ii=0;ii<13;ii++) {
         Serial.print(fromBuffer[ii]);
         Serial.print(" ");
         }
@@ -157,6 +158,7 @@ int SlowerThanLightReader(unsigned long params[]) { /* TODO receive control inst
     params[3] = fromBuffer[6] * 256 + fromBuffer[7];
     params[4] = fromBuffer[8];
     params[5] = fromBuffer[9] * 256 + fromBuffer[10];
+    params[6] = fromBuffer[11] * 256 + fromBuffer[12];
     while (SerialUSB.available() > 0) { /* Empty the rest */
       byte test[0];
       SerialUSB.readBytes(test, 1);

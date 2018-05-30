@@ -31,13 +31,14 @@ function sendParams(obj,Controls)
 %     Bytes 3,4,5,6 : loop delay in microseconds (unsigned long, 32bits) 
 %     Bytes 7,8     : Pulse Width (ms) (max 65535)                
 %     Byte 9        : repetitions-1 (max 256)                      
-%     Bytes 10,11   : Control delay (ms) (max 65535)              
+%     Bytes 10,11   : Control delay (ms) (max 65535) 
+%     Bytes 12,13   : Control trigger delay (ms) (max 65535)
    
 
     if nargin<2
         Controls=[];
     end
-    STLCargo=zeros(1,11);
+    STLCargo=zeros(1,13);
     STLCargo(1)=obj.Channels+16;
     STLCargo(2)=uint8(obj.nMeasures);
     STLCargo(6)=mod(obj.Delay,2^8);
@@ -59,6 +60,8 @@ function sendParams(obj,Controls)
                 STLCargo(9)=uint8(Control.Repetition);
                 STLCargo(11)=mod(Control.Delay,2^8);
                 STLCargo(10)=(Control.Delay-STLCargo(11))/2^8;
+                STLCargo(13)=mod(Control.TrigDelay,2^8);
+                STLCargo(12)=(Control.TrigDelay-STLCargo(13))/2^8;
         end
     Settings_sep=[repmat('-',[1 72]) '\n'];
     obj.openPort;
