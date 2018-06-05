@@ -53,7 +53,7 @@ function sendParams(obj,Controls)
     for i=1:numel(Controls)
         Control=Controls(i);
         STLCargo(1)=obj.Channels+16*i;
-        switch lower(Control.Type)
+        switch lower(Controls(1).Type)
             case 'stagedsequence'
                 STLCargo(8)=mod(Control.PulseWidth,2^8);
                 STLCargo(7)=(Control.PulseWidth-STLCargo(8))/2^8;

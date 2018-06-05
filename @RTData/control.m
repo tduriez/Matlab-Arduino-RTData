@@ -45,7 +45,7 @@ if isempty(obj.Control)
 end
 
 if ~ismember(lower(obj.Control(1).Type),{'stagedsequence'})
-    if strcmpi(obj.Control.Type,'none')
+    if strcmpi(obj.Control(1).Type,'none')
         fprintf('Control method is set to ''None''\n');
     else
         fprintf('Unknown control method ''%s''.\n',obj.Control.Type);
@@ -54,7 +54,7 @@ if ~ismember(lower(obj.Control(1).Type),{'stagedsequence'})
     return;
 end
 
-switch lower(obj.Control.Type)
+switch lower(obj.Control(1).Type)
     case 'stagedsequence'
         % Arduino expects a A as leading element of this command
         % instruction

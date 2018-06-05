@@ -43,7 +43,7 @@ try
  %   flushinput(obj.Hardware.Serial);
     a=[1 2];
     idx=[];
-    while ~((length(idx)==3) && all(a(end-1:end)==[13 10]))
+    while ~((length(idx)==4) && all(a(end-1:end)==[13 10]))
         a=fscanf(obj.Hardware.Serial);
         if strcmpi(mode,'debug')
             fprintf('From Arduino (Query): %s\n',a);
@@ -57,10 +57,10 @@ try
         fprintf('From Arduino (Query): %s\n',a);
     end
    
-nSensors=str2double(a(1:idx(1)-1));
-    nMeasures=str2double(a(idx(1)+1:idx(2)-1));
-    SetDelay=str2double(a(idx(2)+1:idx(3)-1));
-    mDelay=str2double(a(idx(3)+1:end));
+    nSensors=str2double(a(idx(1)+1:idx(2)-1));
+    nMeasures=str2double(a(idx(2)+1:idx(3)-1));
+    SetDelay=str2double(a(idx(3)+1:idx(4)-1));
+    mDelay=str2double(a(idx(4)+1:end));
     fprintf(obj.Hardware.Serial,'');
     flushinput(obj.Hardware.Serial);
     pause(0.1);
@@ -91,6 +91,7 @@ nSensors=str2double(a(1:idx(1)-1));
     fprintf('Measured delay (extern): %d\n',mDelay2);
 catch err
    save STLCheck_lasterr 
+   keyboard
    throw(err)
 end
 end

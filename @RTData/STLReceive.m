@@ -49,6 +49,9 @@ if nbacquis==0
     timing=[];
     return;
 end
+
+
+
 dummy=fread(obj.Hardware.Serial,CargoByteSize*nbacquis,'uint8');
 for nba=1:nbacquis
     a=dummy(1+CargoByteSize*(nba-1):CargoByteSize*nba);

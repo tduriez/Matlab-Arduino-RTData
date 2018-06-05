@@ -322,14 +322,14 @@ void loop() {
     mode = SlowerThanLightReader(Parameters);
     if (mode == 15) { // Query mode
       DEBUG_PRINTLN("It's Query mode !");
-
-#ifdef DEBUG
-      int N = 0;
-#endif
+      #ifdef DEBUG
+        int N = 0;
+      #endif
       while (SerialUSB.available() < 1) {
-#ifdef DEBUG
-        N++;
-#endif
+        #ifdef DEBUG
+          N++;
+        #endif
+        SerialUSB.print("XX ");
         SerialUSB.print(nSensors);
         SerialUSB.print(" ");
         SerialUSB.print(nMeasures);
@@ -362,11 +362,11 @@ void loop() {
       nMeasures      = Parameters[1];
       TheDelay       = Parameters[2];
       if (Parameters[3] > 0) {
-        ActParams[0] = Parameters[3];
-        ActParams[1] = Parameters[4];
-        ActParams[2] = Parameters[5];
-        ActTime[0] = millis();
-        ActTimeOut[0] = millis() + ActParams[0];
+        ActParams[0+(mode-1)*3] = Parameters[3];
+        ActParams[1+(mode-1)*3] = Parameters[4];
+        ActParams[2+(mode-1)*3] = Parameters[5];
+        ActTime[mode-1] = millis();
+        ActTimeOut[mode-1] = millis() + ActParams[0+(mode-1)*3];
       }
       DEBUG_PRINT("n sensors: ");
       DEBUG_PRINTLN(nSensors);
@@ -384,8 +384,11 @@ void loop() {
       DEBUG_PRINTLN(mode);
     }
     if (mode == 14) { // Kill Mode
-      ActTime[0] = 4294967295;
-      ActTimeOut[0] = 0;
+      int killcount;
+      for (killcount=0;killcount++;killcount<4) {
+        ActTime[killcount] = 4294967295;
+        ActTimeOut[killcount] = 0;
+      }
       DEBUG_PRINTLN("Actuation killed!!!");
     }
 
