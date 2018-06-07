@@ -39,6 +39,7 @@ int Sensors[12];
 int Controls[4];
 unsigned long ActTime[4];
 unsigned long ActTimeOut[4];
+unsigned long TrigDelay[4];
 int ActParams[12];
 
 /* *****************
@@ -170,18 +171,18 @@ int SlowerThanLightReader(unsigned long params[]) { /* TODO receive control inst
   }
 }
 
-void control(int Controls[], unsigned long ActTime[], unsigned long ActTimeOut[], int ActParams[]) {
+void control(int Controls[], unsigned long ActTime[], unsigned long ActTimeOut[], unsigned long TrigDelay[], int ActParams[]) {
   Controls[0] = 0;
   Controls[1] = 0;
   Controls[2] = 0;
   Controls[3] = 0;
 
   /* control line 1*/
-  if (millis() > ActTime[0]) {
+  if ((millis() - TrigDelay[0]) > ActTime[0]) {
     Controls[0] = 1;
   }
 
-  if (millis() > ActTimeOut[0]) {
+  if ((millis() - TrigDelay[0])> ActTimeOut[0]) {
     if (Controls[0] == 1) {
       if (ActParams[1] > 1) {
         ActTime[0] = ActTime[0] + ActParams[2];
@@ -193,11 +194,11 @@ void control(int Controls[], unsigned long ActTime[], unsigned long ActTimeOut[]
   }
 
    /* control line 2*/
-  if (millis() > ActTime[1]) {
+  if ((millis() - TrigDelay[1])> ActTime[1]) {
     Controls[1] = 1;
   }
 
-  if (millis() > ActTimeOut[1]) {
+  if ((millis() - TrigDelay[1])> ActTimeOut[1]) {
     if (Controls[1] == 1) {
       if (ActParams[4] > 1) {
         ActTime[1] = ActTime[1] + ActParams[5];
@@ -209,11 +210,11 @@ void control(int Controls[], unsigned long ActTime[], unsigned long ActTimeOut[]
   }
 
     /* control line 3*/
-  if (millis() > ActTime[2]) {
+  if ((millis() - TrigDelay[2])> ActTime[2]) {
     Controls[2] = 1;
   }
 
-  if (millis() > ActTimeOut[2]) {
+  if ((millis() - TrigDelay[2])> ActTimeOut[2]) {
     if (Controls[2] == 1) {
       if (ActParams[7] > 1) {
         ActTime[2] = ActTime[2] + ActParams[8];
@@ -225,11 +226,11 @@ void control(int Controls[], unsigned long ActTime[], unsigned long ActTimeOut[]
   }
 
      /* control line 4*/
-  if (millis() > ActTime[3]) {
+  if ((millis() - TrigDelay[3])> ActTime[3]) {
     Controls[3] = 1;
   }
 
-  if (millis() > ActTimeOut[3]) {
+  if ((millis() - TrigDelay[3])> ActTimeOut[3]) {
     if (Controls[3] == 1) {
       if (ActParams[10] > 1) {
         ActTime[3] = ActTime[3] + ActParams[11];
@@ -276,7 +277,17 @@ void setup() {
   DigiActionPins[2]=11;
   DigiActionPins[3]=10;
   ActTime[0] = 4294967295;
+  ActTime[1] = 4294967295;
+  ActTime[2] = 4294967295;
+  ActTime[3] = 4294967295;
   ActTimeOut[0] = 0;
+  ActTimeOut[1] = 0;
+  ActTimeOut[2] = 0;
+  ActTimeOut[3] = 0;
+  TrigDelay[0] = 0;
+  TrigDelay[1] = 0;
+  TrigDelay[2] = 0;
+  TrigDelay[3] = 0;
   analogReadResolution(12);
   SerialUSB.begin(9600);  //speed of this one doesn't mean anything
   Serial.begin(9600);
@@ -309,7 +320,7 @@ void loop() {
   rescaleSensors(Sensors, nSensors, nMeasures);
 
   /* Control */
-  control(Controls, ActTime, ActTimeOut, ActParams);
+  control(Controls, ActTime, ActTimeOut, TrigDelay, ActParams);
 
   /* Send Results */
   SlowerThanLightWriter(Sensors, Controls, nSensors);
@@ -367,6 +378,7 @@ void loop() {
         ActParams[2+(mode-1)*3] = Parameters[5];
         ActTime[mode-1] = millis();
         ActTimeOut[mode-1] = millis() + ActParams[0+(mode-1)*3];
+        TrigDelay[mode-1] = Parameters[6];
       }
       DEBUG_PRINT("n sensors: ");
       DEBUG_PRINTLN(nSensors);
