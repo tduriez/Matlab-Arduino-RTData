@@ -145,11 +145,16 @@ function displayControl(handles)
         set(handles.ControlList,'String','No control','Value',1);
         return
     end
-    switch lower(handles.output.Control.Type)
+    switch lower(handles.output.Control(1).Type)
         case 'stagedsequence'
-            disptxt{2}=sprintf('Pulse Width: %d ms',handles.output.Control.PulseWidth);
-            disptxt{3}=sprintf('#: %d',handles.output.Control.Repetition);
-            disptxt{4}=sprintf('Every: %d ms',handles.output.Control.Delay);
+            for i=1:length(handles.output.Control)
+                disptxt{2+(i-1)*6}='------------';
+                disptxt{3+(i-1)*6}=sprintf('Line %d',i);
+                disptxt{4+(i-1)*6}=sprintf('Pulse Width: %d ms',handles.output.Control(i).PulseWidth);
+                disptxt{5+(i-1)*6}=sprintf('#: %d',handles.output.Control(i).Repetition);
+                disptxt{6+(i-1)*6}=sprintf('Every: %d ms',handles.output.Control(i).Delay);
+                disptxt{7+(i-1)*6}=sprintf('Trigged at: %d ms',handles.output.Control(i).TrigDelay);
+            end            
     end
     set(handles.ControlList,'String',disptxt);
 

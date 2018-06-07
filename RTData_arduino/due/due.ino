@@ -1,5 +1,5 @@
-#define DEBUG     // uncomment this line to get debug messages on Programming Port
-#define STL_DEBUG // uncomment this line to get debug messages on Programming Port for STL Communication
+//#define DEBUG     // uncomment this line to get debug messages on Programming Port
+//#define STL_DEBUG // uncomment this line to get debug messages on Programming Port for STL Communication
 
 
 

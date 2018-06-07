@@ -60,7 +60,7 @@ reset=0;
 if isempty(handles.output.Control)
     reset=1;
 else
-    if ~strcmpi(handles.output.Control.Type,'stagedsequence')
+    if ~strcmpi(handles.output.Control(1).Type,'stagedsequence')
         reset=1;
     end
 end
