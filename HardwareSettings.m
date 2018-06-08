@@ -100,7 +100,7 @@ function setGUItoValue(handles)
     
     if handles.daqrecognized
         set(handles.dtpop,'enable','on');
-        for i=0:6;chnlist{i}=sprintf('%d Channels',i);end
+        for i=0:6;chnlist{i+1}=sprintf('%d Channels',i);end
         set(handles.dtpop,'string',chnlist);
     else
         set(handles.dtpop,'enable','off');
@@ -280,7 +280,7 @@ function SetBttn_Callback(hObject, eventdata, handles)
 if handles.daqrecognized
     if get(handles.dtpop,'Value')>1
         handles.output.Hardware.DT = daq.createSession('dt');
-        addAnalogInputChannel(handles.output.Hardware.DT,'DT9816-S(00)',[0 1],'voltage');
+        addAnalogInputChannel(handles.output.Hardware.DT,'DT9816-S(00)',0:(get(handles.dtpop,'Value')-1),'voltage');
         handles.output.Hardware.DT.IsContinuous=1;
     end
 end

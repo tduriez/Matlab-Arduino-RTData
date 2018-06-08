@@ -70,7 +70,7 @@ if ~obj.acquired
         if ~isempty(obj.Hardware.DT)
              datus=DTdata;
              addlistener(obj.Hardware.DT,'DataAvailable', @(src,evnt)datus.get_data(src,evnt,datus));
-             s.startBackground;
+             obj.Hardware.DT.startBackground;
         end
         
         

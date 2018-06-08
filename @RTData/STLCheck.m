@@ -91,7 +91,6 @@ try
     fprintf('Measured delay (extern): %d\n',mDelay2);
 catch err
    save STLCheck_lasterr 
-   keyboard
    throw(err)
 end
 end
