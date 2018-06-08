@@ -4,6 +4,7 @@ classdef RTDataHardware < matlab.mixin.Copyable
 %
 %   RTDataHardware properties:
 %   Arduino  - (string)   Board type (default: 'due')
+%   DT       - (Daq Session) Daq Session for DT board if present
 %   Delay    - (integer)  Board loop period
 %   Port     - (string)   Name of the serial port
 %
@@ -16,10 +17,10 @@ classdef RTDataHardware < matlab.mixin.Copyable
 %   createSerial  - creates serial object
 %  
 %   See also: RTData
-%   Copyright (c) 2017, Thomas Duriez (Distributed under GPLv3)
+%   Copyright (c) 2017-2018, Thomas Duriez (Distributed under GPLv3)
 
 %% Copyright
-%    Copyright (c) 2017, Thomas Duriez (thomas.duriez@gmail.com)
+%    Copyright (c) 2017-2018, Thomas Duriez (thomas.duriez@gmail.com)
 %
 %    This program is free software: you can redistribute it and/or modify
 %    it under the terms of the GNU General Public License as published by
@@ -45,6 +46,7 @@ classdef RTDataHardware < matlab.mixin.Copyable
     properties (SetObservable, AbortSet)
         Arduino='due'
         Delay=1000
+        DT=[];
         Port
         Channels=2
         ControlPorts=4

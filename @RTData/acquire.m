@@ -67,6 +67,13 @@ if ~obj.acquired
         %% Acquire data
         Marker=1; % indicates first acquisition for initial time tracking
         time_init=0;
+        if ~isempty(obj.Hardware.DT)
+             datus=DTdata;
+             addlistener(obj.Hardware.DT,'DataAvailable', @(src,evnt)datus.get_data(src,evnt,datus));
+             s.startBackground;
+        end
+        
+        
         obj.STLDocking;
         tic
         while ishandle(TheFig)  %closing the display stops the acquisition
@@ -86,6 +93,9 @@ if ~obj.acquired
         end
         obj.STLStorage;
     catch err
+        if ~isempty(obj.Hardware.DT)
+            daqreset
+        end
         fprintf('\n%s\n\n',err.message);
         for i=1:length(err.stack)
            disp(err.stack(i)); 
@@ -94,6 +104,13 @@ if ~obj.acquired
     end
     obj.stop; %stoping unmonitored control
     obj.acquired=1;
+    
+    if ~isempty(obj.Hardware.DT)
+            stop(obj.Hardware.DT);
+            obj.DTdata=datus;
+            daqreset
+    end
+    
     obj.save;
     obj.closePort;
     fprintf('End of acquisition\n');

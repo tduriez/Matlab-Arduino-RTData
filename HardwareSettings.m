@@ -22,7 +22,7 @@ function varargout = HardwareSettings(varargin)
 
 % Edit the above text to modify the response to help HardwareSettings
 
-% Last Modified by GUIDE v2.5 01-Sep-2017 15:30:37
+% Last Modified by GUIDE v2.5 08-Jun-2018 08:48:55
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -62,6 +62,15 @@ for i=1:12
     nums{i}=num2str(i);
 end
 set(handles.ChannelsMenu,'String',nums);
+
+daqs=daq.getDevices;
+     handles.daqrecognized=0;
+     for i=1:length(daqs)
+         if strcmp(daqs(i).Model,'DT9816-S')
+            handles.daqrecognized=1;
+         end
+     end
+
 setGUItoValue(handles);
 if isempty(handles.output.Hardware.Port)
     state='off';
@@ -75,7 +84,8 @@ end
     set(handles.DelayEdt,'enable',state);
     set(handles.MeasuresEdt,'enable',state);
     set(handles.ChannelsMenu,'enable',state);
-
+    
+     
 % Update handles structure
 guidata(hObject, handles);
 
@@ -87,6 +97,15 @@ function setGUItoValue(handles)
     idx=strcmpi(handles.output.Hardware.Arduino,boards);
     idx=find(idx);
     set(handles.ArduinoMenu,'Value',idx);
+    
+    if handles.daqrecognized
+        set(handles.dtpop,'enable','on');
+        for i=0:6;chnlist{i}=sprintf('%d Channels',i);end
+        set(handles.dtpop,'string',chnlist);
+    else
+        set(handles.dtpop,'enable','off');
+        set(handles.dtpop,'string','OFF');
+    end
     
     if ~isempty(handles.output.Hardware.Port);
         detectedports=get(handles.PortMenu,'String');
@@ -258,4 +277,36 @@ function SetBttn_Callback(hObject, eventdata, handles)
 % hObject    handle to SetBttn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+if handles.daqrecognized
+    if get(handles.dtpop,'Value')>1
+        handles.output.Hardware.DT = daq.createSession('dt');
+        addAnalogInputChannel(handles.output.Hardware.DT,'DT9816-S(00)',[0 1],'voltage');
+        handles.output.Hardware.DT.IsContinuous=1;
+    end
+end
+        
+
 uiresume
+
+
+% --- Executes on selection change in dtpop.
+function dtpop_Callback(hObject, eventdata, handles)
+% hObject    handle to dtpop (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns dtpop contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from dtpop
+
+
+% --- Executes during object creation, after setting all properties.
+function dtpop_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to dtpop (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

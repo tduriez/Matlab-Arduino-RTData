@@ -72,6 +72,7 @@ classdef RTData < matlab.mixin.Copyable
         Data=[]        % Where data will be kept
         Action=[]      % Where action will be kept 
         Time=[]        % Where time will be kept
+        DTdata=[]      % Where we keep results from DT board
         AcqDate        % Burnt once acquisition is done
         Version=2.0    
     end
