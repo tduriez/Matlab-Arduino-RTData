@@ -108,6 +108,8 @@ if ~obj.acquired
     if ~isempty(obj.Hardware.DT)
             stop(obj.Hardware.DT);
             obj.DTdata=datus;
+            figure
+            plot(obj.DTdata.time,obj.DTdata.data)
             daqreset
     end
     

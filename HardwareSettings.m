@@ -280,7 +280,7 @@ function SetBttn_Callback(hObject, eventdata, handles)
 if handles.daqrecognized
     if get(handles.dtpop,'Value')>1
         handles.output.Hardware.DT = daq.createSession('dt');
-        addAnalogInputChannel(handles.output.Hardware.DT,'DT9816-S(00)',0:(get(handles.dtpop,'Value')-1),'voltage');
+        addAnalogInputChannel(handles.output.Hardware.DT,'DT9816-S(00)',0:(get(handles.dtpop,'Value')-2),'voltage');
         handles.output.Hardware.DT.IsContinuous=1;
     end
 end
