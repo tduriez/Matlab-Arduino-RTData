@@ -42,11 +42,11 @@ function STLPlot(h,Time,Data,Control)
         
         DisplayTime=Time(max(1,h.iMeasurements-h.graphics.iFrame):h.graphics.nStep:h.iMeasurements);
         DisplayData=[Data(max(1,h.iMeasurements-h.graphics.iFrame):h.graphics.nStep:h.iMeasurements,:)...
-                     Control(max(1,h.iMeasurements-h.graphics.iFrame):h.graphics.nStep:h.iMeasurements,:)];
+                    Control(max(1,h.iMeasurements-h.graphics.iFrame):h.graphics.nStep:h.iMeasurements,:)];
     end
    
 try
-        for k=1:numel(h.graphics.plot_handles)
+        for k=1:size(DisplayData,2)
             set(h.graphics.plot_handles(k),'XData',DisplayTime,'YData',DisplayData(:,k));
         end
         

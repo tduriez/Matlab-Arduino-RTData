@@ -68,7 +68,7 @@ classdef RTData < matlab.mixin.Copyable
     
 
 %% Protected properties
-    properties (SetAccess=private)
+    properties (SetAccess={?RTData})
         Data=[]        % Where data will be kept
         Action=[]      % Where action will be kept 
         Time=[]        % Where time will be kept
@@ -77,7 +77,7 @@ classdef RTData < matlab.mixin.Copyable
     end
     
 %% Hidden, unaccessible magic properties (a.k.a. dirty tweaks)    
-    properties (Hidden, SetAccess=private)
+    properties (Hidden, SetAccess={?RTData})
         nBuffer=1000*60*10 % Provision for 10 minutes at 1kHz
         BufferSize=0       % Keeps track of current storage capacity
         iMeasurements=0    % used while acquiring         
